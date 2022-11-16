@@ -90,9 +90,9 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     best_acc = 0.0
     best_model = None
 
-    '''
+
     #step2: Using labeled data to fine-tuning MOCOv2
-    for iter_num in range(1, 6000 + 1):  #args.max_iter + 1
+    for iter_num in range(1, 3000 + 1):  #args.max_iter + 1   3000 is enough for convergence.
         model.train(True)
         classifier.train(True)
         optimizer.zero_grad()
@@ -115,41 +115,61 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
         PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled, PGC_label_labeled)  #Contrastive loss for instances with the same labels
 
         #Alternative CE loss or CL loss or both. CE: using classifier_loss to fine tune MOCOv2; CL: using (pos1+pos2)/(pos1+pos2+neg) to fine tune
-        total_loss = classifier_loss + PGC_loss_labeled
+        total_loss = PGC_loss_labeled #+ classifier_loss
         total_loss.backward()
         optimizer.step()
         scheduler.step()
-    '''
+
+        ## Calculate the training accuracy of current iteration
+        if iter_num % 100 == 0:
+            _, predict = torch.max(out, 1)
+            hit_num = (predict == label).sum().item()
+            sample_num = predict.size(0)
+            print("iter_num: {}; current acc: {}".format(iter_num, hit_num / float(sample_num)))
+
 
 
     # step3: For Unlabeled Data, Divide U data into N clusters
     # Using numpy because our gpu memory is limited T_T
     data = np.zeros((1, 2048))
     label = np.zeros(1)
+    pseudo_label = np.zeros(1)
     for i, (images, target) in enumerate(dataset_loaders["unlabeled_train"]):
 
         images = images[0].to(device)
         #img_unlabeled_k = data_unlabeled[0][1].to(device)
 
-
+        #arrange pseudo label
         _, q_f_unlabeled = model.encoder_q(images)
-        q_f_unlabeled = q_f_unlabeled.cpu().detach().numpy()
+        logit_unlabeled = classifier(q_f_unlabeled)
+        prob_unlabeled = torch.softmax(logit_unlabeled.detach(), dim=-1)
+        confidence_unlabeled, predict_unlabeled = torch.max(prob_unlabeled, dim=-1)
 
+        #change feature and pseudo label from tensor to numpy
+        q_f_unlabeled = q_f_unlabeled.cpu().detach().numpy()
+        predict_unlabeled = predict_unlabeled.cpu().detach().numpy()
+
+        #store feature, real label and preudo label -->data, label, pseudo_label
         data = np.concatenate((data, q_f_unlabeled), axis=0)
         label = np.concatenate((label, target), axis=0)
+        pseudo_label = np.concatenate((pseudo_label, predict_unlabeled), axis=0)
 
-
+    #delete the first row
     data = np.delete(data,(0), axis = 0)
     label = np.delete(label, (0), axis=0)
+    pseudo_label = np.delete(pseudo_label, (0), axis=0)
+    #normalize data
     data = data/ np.linalg.norm(data, axis=1).reshape(-1,1)
+
+    #Initialize cluster label as all 0
     cluster = np.zeros(data.shape[0],dtype=np.int64)
 
     #check accuracy of mocov2 in retrieval, the higher, the better
     top1 = accuracy_top1(data,label)
     print(top1)
 
-    #generate cluster in unlabeled data. details see unlabeled_cluster.csv file
-    generate_cluster(data,label,cluster)
+    #generate cluster label in unlabeled data. details see unlabeled_cluster.csv file
+    generate_cluster(data,label,pseudo_label, cluster)
 
 
 
@@ -339,7 +359,7 @@ def accuracy_top1(data, label):
     top1 = np.mean(topN1)
     return top1
 
-def generate_cluster(data, label, cluster):
+def generate_cluster(data, label, pseudo_label, cluster):
     j = 1
     i = 0
     while i < data.shape[0]:
@@ -370,7 +390,7 @@ def generate_cluster(data, label, cluster):
         i = i + 1
         j = j + 1
 
-    dataframe = pd.DataFrame({'real label': label, 'cluster label': cluster})
+    dataframe = pd.DataFrame({'real label': label, 'cluster label': cluster,'pseudo_label': pseudo_label})
     dataframe.to_csv("unlabeled_cluster.csv")
 
 if __name__ == '__main__':
