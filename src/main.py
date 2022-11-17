@@ -115,7 +115,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
         PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled, PGC_label_labeled)  #Contrastive loss for instances with the same labels
 
         #Alternative CE loss or CL loss or both. CE: using classifier_loss to fine tune MOCOv2; CL: using (pos1+pos2)/(pos1+pos2+neg) to fine tune
-        total_loss = PGC_loss_labeled #+ classifier_loss
+        total_loss = PGC_loss_labeled + classifier_loss
         total_loss.backward()
         optimizer.step()
         scheduler.step()
@@ -134,6 +134,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     data = np.zeros((1, 2048))
     label = np.zeros(1)
     pseudo_label = np.zeros(1)
+    confidence= np.zeros(1)
     for i, (images, target) in enumerate(dataset_loaders["unlabeled_train"]):
 
         images = images[0].to(device)
@@ -145,19 +146,22 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
         prob_unlabeled = torch.softmax(logit_unlabeled.detach(), dim=-1)
         confidence_unlabeled, predict_unlabeled = torch.max(prob_unlabeled, dim=-1)
 
-        #change feature and pseudo label from tensor to numpy
+        #change feature, pseudo label, confidence from tensor to numpy
         q_f_unlabeled = q_f_unlabeled.cpu().detach().numpy()
         predict_unlabeled = predict_unlabeled.cpu().detach().numpy()
+        confidence_unlabeled = confidence_unlabeled.cpu().detach().numpy()
 
-        #store feature, real label and preudo label -->data, label, pseudo_label
+        #store feature, real label, preudo label and confidence -->data, label, pseudo_label, confidence
         data = np.concatenate((data, q_f_unlabeled), axis=0)
         label = np.concatenate((label, target), axis=0)
         pseudo_label = np.concatenate((pseudo_label, predict_unlabeled), axis=0)
+        confidence = np.concatenate((confidence, confidence_unlabeled), axis=0)
 
     #delete the first row
     data = np.delete(data,(0), axis = 0)
     label = np.delete(label, (0), axis=0)
     pseudo_label = np.delete(pseudo_label, (0), axis=0)
+    confidence = np.delete(confidence, (0), axis=0)
     #normalize data
     data = data/ np.linalg.norm(data, axis=1).reshape(-1,1)
 
@@ -169,9 +173,9 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     print(top1)
 
     #generate cluster label in unlabeled data. details see unlabeled_cluster.csv file
-    generate_cluster(data,label,pseudo_label, cluster)
+    generate_cluster(data,label,pseudo_label, cluster, confidence)
 
-
+    #step4-6
 
     for iter_num in range(1, args.max_iter + 1):
         model.train(True)
@@ -359,7 +363,7 @@ def accuracy_top1(data, label):
     top1 = np.mean(topN1)
     return top1
 
-def generate_cluster(data, label, pseudo_label, cluster):
+def generate_cluster(data, label, pseudo_label, cluster,confidence):
     j = 1
     i = 0
     while i < data.shape[0]:
@@ -390,7 +394,7 @@ def generate_cluster(data, label, pseudo_label, cluster):
         i = i + 1
         j = j + 1
 
-    dataframe = pd.DataFrame({'real label': label, 'cluster label': cluster,'pseudo_label': pseudo_label})
+    dataframe = pd.DataFrame({'real label': label, 'cluster label': cluster,'pseudo_label': pseudo_label,'confidence_unlabeled':confidence})
     dataframe.to_csv("unlabeled_cluster.csv")
 
 if __name__ == '__main__':
