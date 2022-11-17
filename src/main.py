@@ -92,7 +92,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
 
 
     #step2: Using labeled data to fine-tuning MOCOv2
-    for iter_num in range(1, 3000 + 1):  #args.max_iter + 1   3000 is enough for convergence.
+    for iter_num in range(1, 100 + 1):  #args.max_iter + 1   3000 is enough for convergence.
         model.train(True)
         classifier.train(True)
         optimizer.zero_grad()
@@ -106,6 +106,8 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
         img_labeled_q = data_labeled[0][0].to(device)
         img_labeled_k = data_labeled[0][1].to(device)
         label = data_labeled[1].to(device)
+        path = data_labeled[2]
+
 
 
         ## For Labeled Data
@@ -135,7 +137,8 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     label = np.zeros(1)
     pseudo_label = np.zeros(1)
     confidence= np.zeros(1)
-    for i, (images, target) in enumerate(dataset_loaders["unlabeled_train"]):
+    arr_path = ['first']
+    for i, (images, target, path) in enumerate(dataset_loaders["unlabeled_train"]):
 
         images = images[0].to(device)
         #img_unlabeled_k = data_unlabeled[0][1].to(device)
@@ -156,12 +159,14 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
         label = np.concatenate((label, target), axis=0)
         pseudo_label = np.concatenate((pseudo_label, predict_unlabeled), axis=0)
         confidence = np.concatenate((confidence, confidence_unlabeled), axis=0)
+        arr_path = np.concatenate((arr_path, path), axis=0)
 
     #delete the first row
     data = np.delete(data,(0), axis = 0)
     label = np.delete(label, (0), axis=0)
     pseudo_label = np.delete(pseudo_label, (0), axis=0)
     confidence = np.delete(confidence, (0), axis=0)
+    arr_path = np.delete(arr_path, (0), axis=0)
     #normalize data
     data = data/ np.linalg.norm(data, axis=1).reshape(-1,1)
 
@@ -173,9 +178,9 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     print(top1)
 
     #generate cluster label in unlabeled data. details see unlabeled_cluster.csv file
-    generate_cluster(data,label,pseudo_label, cluster, confidence)
+    generate_cluster(data,label,pseudo_label, cluster, confidence, arr_path)
 
-    #step4-6
+
 
     for iter_num in range(1, args.max_iter + 1):
         model.train(True)
@@ -363,7 +368,7 @@ def accuracy_top1(data, label):
     top1 = np.mean(topN1)
     return top1
 
-def generate_cluster(data, label, pseudo_label, cluster,confidence):
+def generate_cluster(data, label, pseudo_label, cluster,confidence,arr_path):
     j = 1
     i = 0
     while i < data.shape[0]:
@@ -394,7 +399,7 @@ def generate_cluster(data, label, pseudo_label, cluster,confidence):
         i = i + 1
         j = j + 1
 
-    dataframe = pd.DataFrame({'real label': label, 'cluster label': cluster,'pseudo_label': pseudo_label,'confidence_unlabeled':confidence})
+    dataframe = pd.DataFrame({'image':arr_path, 'real label': label, 'cluster label': cluster,'pseudo_label': pseudo_label,'confidence_unlabeled':confidence}, index=None)
     dataframe.to_csv("unlabeled_cluster.csv")
 
 if __name__ == '__main__':
