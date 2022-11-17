@@ -69,7 +69,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 ## Step1+Step2, using CE/CL loss fune-tune MoCo
 | Dataset | Label Ratio  | no loss | CE loss | CE + CL loss | CL loss |
 | -- | -- | -- | -- | -- | -- |
-| CUB-200-2011 | 15%| 20% | 33% | 44% | 36% |
+| CUB-200-2011 | 15%| 20% | 33% | 44% | 38% |
 | Stanford Cars  | 15% |  |  |  |  |
 | FGVC Aircraft  | 15%|  |  |  |  |
 
