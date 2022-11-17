@@ -48,7 +48,7 @@ class ImageList(datasets.VisionDataset):
             img = self.transform(img)
         if self.target_transform is not None and target is not None:
             target = self.target_transform(target)
-        return img, target
+        return img, target, path
 
     def __len__(self) -> int:
         return len(self.samples)
