@@ -18,6 +18,7 @@ from tensorboardX import SummaryWriter
 from src.utils import load_network, load_data
 from sklearn.preprocessing import normalize
 import pandas as pd
+from collections import Counter
 
 
 def test_cifar(loader, model, classifier, device):
@@ -90,9 +91,9 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     best_acc = 0.0
     best_model = None
 
-
+    '''
     #step2: Using labeled data to fine-tuning MOCOv2
-    for iter_num in range(1, 100 + 1):  #args.max_iter + 1   3000 is enough for convergence.
+    for iter_num in range(1, 3000 + 1):  #args.max_iter + 1   3000 is enough for convergence.
         model.train(True)
         classifier.train(True)
         optimizer.zero_grad()
@@ -130,7 +131,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
             print("iter_num: {}; current acc: {}".format(iter_num, hit_num / float(sample_num)))
 
 
-
+    
     # step3: For Unlabeled Data, Divide U data into N clusters
     # Using numpy because our gpu memory is limited T_T
     data = np.zeros((1, 2048))
@@ -179,6 +180,10 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
 
     #generate cluster label in unlabeled data. details see unlabeled_cluster.csv file
     generate_cluster(data,label,pseudo_label, cluster, confidence, arr_path)
+    '''
+
+    #select suitable unlabeled data, arrange psuedo label as part of labeled data
+    select_unlabel_data(args)
 
 
 
@@ -275,6 +280,8 @@ def read_config():
     parser.add_argument('--test_interval', type=float, default=3000)
     parser.add_argument("--pretrained", action="store_true", help="use the pre-trained model")
     parser.add_argument("--pretrained_path", type=str, default='~/.torch/models/moco_v2_800ep_pretrain.pth.tar')
+    parser.add_argument('--num_of_cluster', type=float, default=50)
+    parser.add_argument('--confidence', type=float, default=0.95)
     ## Only for Cifar100
     parser.add_argument("--expand_label", action="store_true", help="expand label to fit eval steps")
     parser.add_argument('--num_labeled', type=int, default=0, help='number of labeled data')
@@ -401,6 +408,45 @@ def generate_cluster(data, label, pseudo_label, cluster,confidence,arr_path):
 
     dataframe = pd.DataFrame({'image':arr_path, 'real label': label, 'cluster label': cluster,'pseudo_label': pseudo_label,'confidence_unlabeled':confidence})
     dataframe.to_csv("unlabeled_cluster.csv", index=False)
+
+def select_unlabel_data(args):
+    unlabel_cluster = pd.read_csv("./unlabeled_cluster.csv")
+    list1 = unlabel_cluster.values.tolist()
+    arr = np.array(list1)
+    select_total_unlabel_data = arr[0, :].reshape(1, -1)
+
+    num_of_cluster = args.num_of_cluster
+    j = 1
+    temp = arr[:, 2]
+    number = temp.tolist()
+    # print(max(list(map(int, number))))
+
+    while j <= num_of_cluster and j <= max(list(map(int, number))):
+        k = str(j)
+        row_index = np.where(arr[:, 2] == k)
+        sub_arr = arr[row_index, :][0]
+
+        most_psuedo_label = Counter(sub_arr[:, 3]).most_common(1)[0][0]
+
+        for i in range(sub_arr.shape[0]):
+            if sub_arr[i, 3] == most_psuedo_label and float(sub_arr[i, 4]) >= args.confidence:
+                select_total_unlabel_data = np.concatenate((select_total_unlabel_data, sub_arr[i, :].reshape(1, -1)),
+                                                           axis=0)
+
+        j = j + 1
+
+    # delete the first row
+    select_total_unlabel_data = np.delete(select_total_unlabel_data, (0), axis=0)
+
+    hit_num = (select_total_unlabel_data[:, 3] == select_total_unlabel_data[:, 1]).sum()
+    sample_num = select_total_unlabel_data.shape[0]
+    print("current acc of psuedo label: {}".format(hit_num / float(sample_num)))
+
+    dataframe = pd.DataFrame(
+        {'image': select_total_unlabel_data[:, 0], 'real label': select_total_unlabel_data[:, 1],
+         'pseudo_label': select_total_unlabel_data[:, 3],
+         'confidence_unlabeled': select_total_unlabel_data[:, 4], 'cluster label': select_total_unlabel_data[:, 2], })
+    dataframe.to_csv("select_suitable_unlabeled_data.csv", index=False)
 
 if __name__ == '__main__':
     main()
