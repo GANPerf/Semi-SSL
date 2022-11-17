@@ -91,7 +91,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     best_acc = 0.0
     best_model = None
 
-    '''
+
     #step2: Using labeled data to fine-tuning MOCOv2
     for iter_num in range(1, 3000 + 1):  #args.max_iter + 1   3000 is enough for convergence.
         model.train(True)
@@ -176,11 +176,11 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
 
     #check accuracy of mocov2 in retrieval, the higher, the better
     top1 = accuracy_top1(data,label)
-    print(top1)
+    print("the current acc of mocov2 in retrieval after step1 and step2: {}".format(top1))
 
     #generate cluster label in unlabeled data. details see unlabeled_cluster.csv file
     generate_cluster(data,label,pseudo_label, cluster, confidence, arr_path)
-    '''
+
 
     #select suitable unlabeled data, arrange psuedo label as part of labeled data
     select_unlabel_data(args)
@@ -415,13 +415,12 @@ def select_unlabel_data(args):
     arr = np.array(list1)
     select_total_unlabel_data = arr[0, :].reshape(1, -1)
 
-    num_of_cluster = args.num_of_cluster
     j = 1
     temp = arr[:, 2]
     number = temp.tolist()
     # print(max(list(map(int, number))))
 
-    while j <= num_of_cluster and j <= max(list(map(int, number))):
+    while j <= args.num_of_cluster and j <= max(list(map(int, number))):
         k = str(j)
         row_index = np.where(arr[:, 2] == k)
         sub_arr = arr[row_index, :][0]
