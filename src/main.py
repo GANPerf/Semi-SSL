@@ -399,8 +399,8 @@ def generate_cluster(data, label, pseudo_label, cluster,confidence,arr_path):
         i = i + 1
         j = j + 1
 
-    dataframe = pd.DataFrame({'image':arr_path, 'real label': label, 'cluster label': cluster,'pseudo_label': pseudo_label,'confidence_unlabeled':confidence}, index=None)
-    dataframe.to_csv("unlabeled_cluster.csv")
+    dataframe = pd.DataFrame({'image':arr_path, 'real label': label, 'cluster label': cluster,'pseudo_label': pseudo_label,'confidence_unlabeled':confidence})
+    dataframe.to_csv("unlabeled_cluster.csv", index=False)
 
 if __name__ == '__main__':
     main()
