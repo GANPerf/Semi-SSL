@@ -93,7 +93,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
 
 
     #step2: Using labeled data to fine-tuning MOCOv2
-    for iter_num in range(1, 3000 + 1):  #args.max_iter + 1   3000 is enough for convergence.
+    for iter_num in range(1, args.max_iter + 1):  #args.max_iter + 1   3000 is enough for convergence.
         model.train(True)
         classifier.train(True)
         optimizer.zero_grad()
@@ -413,7 +413,15 @@ def select_unlabel_data(args):
     unlabel_cluster = pd.read_csv("./unlabeled_cluster.csv")
     list1 = unlabel_cluster.values.tolist()
     arr = np.array(list1)
+
+    temp = arr[:, 4]
+    number = temp.tolist()
+    list_confidence = list(map(float, number))
+    array_confidence = np.array(list_confidence)
+    row_index_confidence = np.where(array_confidence >= args.confidence)
+    high_confidence_arr = arr[row_index_confidence,:][0]
     select_total_unlabel_data = arr[0, :].reshape(1, -1)
+
 
     j = 1
     temp = arr[:, 2]
@@ -436,10 +444,15 @@ def select_unlabel_data(args):
 
     # delete the first row
     select_total_unlabel_data = np.delete(select_total_unlabel_data, (0), axis=0)
+    original_unlabel_data = np.delete(select_total_unlabel_data, (0), axis=0)
 
     hit_num = (select_total_unlabel_data[:, 3] == select_total_unlabel_data[:, 1]).sum()
     sample_num = select_total_unlabel_data.shape[0]
-    print("current acc of psuedo label: {}".format(hit_num / float(sample_num)))
+    print("current acc of psuedo label in our method: {}".format(hit_num / float(sample_num)))
+
+    hit_num = (high_confidence_arr [:, 3] == high_confidence_arr [:, 1]).sum()
+    sample_num = high_confidence_arr.shape[0]
+    print("current acc of psuedo label in current paper: {}".format(hit_num / float(sample_num)))
 
     dataframe = pd.DataFrame(
         {'image': select_total_unlabel_data[:, 0], 'real label': select_total_unlabel_data[:, 1],
