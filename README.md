@@ -65,12 +65,13 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | FGVC Aircraft  | [15%](http://github.com/thuml/Self-Tuning/blob/master/vis/Aircraft_15.png) | [30%](http://github.com/thuml/Self-Tuning/blob/master/vis/Aircraft_30.png) | [50%](http://github.com/thuml/Self-Tuning/blob/master/vis/Aircraft_50.png) |
 | Cifar100  | [400](http://github.com/thuml/Self-Tuning/blob/master/vis/Cifar100_400.png) | [2500](http://github.com/thuml/Self-Tuning/blob/master/vis/Cifar100_2500.png) | [10000](http://github.com/thuml/Self-Tuning/blob/master/vis/Cifar100_10000.png) |
 
+## Experimental Results
 ## Step1+Step2, using CE/CL loss fune-tune MoCo
 | Dataset | Label Ratio  | no loss | CE loss | CE + CL loss | CL loss |
 | -- | -- | -- | -- | -- | -- |
-| CUB-200-2011 | [15%] | [20%] | [33%] | [44%] | [36%] |
-| Stanford Cars  | [15%] | [] | [] | [] | [] |
-| FGVC Aircraft  | [15%]| [] | [] | [] | [] |
+| CUB-200-2011 | 15%| 20% | 33% | 44% | 36% |
+| Stanford Cars  | 15% |  |  |  |  |
+| FGVC Aircraft  | 15%|  |  |  |  |
 
 
 
