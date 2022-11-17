@@ -67,17 +67,12 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 
 ## Step1+Step2, using CE/CL loss fune-tune MoCo
 | Dataset | Label Ratio  | no loss | CE loss | CE + CL loss | CL loss |
-| -- | -- | -- | -- |
+| -- | -- | -- | -- | -- | -- |
 | CUB-200-2011 | [15%] | [20%] | [33%] | [44%] | [36%] |
 | Stanford Cars  | [15%] | [] | [] | [] | [] |
 | FGVC Aircraft  | [15%]| [] | [] | [] | [] |
 
-| Dataset | Download Link |
-| -- | -- |
-| CUB-200-2011 | http://www.vision.caltech.edu/visipedia/CUB-200-2011.html |
-| Stanford Cars | http://ai.stanford.edu/~jkrause/cars/car_dataset.html |
-| FGVC Aircraft | http://www.robots.ox.ac.uk/~vgg/data/fgvc-aircraft/ |
-| Cifar100 | https://www.cs.toronto.edu/~kriz/cifar.html |
+
 
 
 - We achieved better results than that reported in the paper, after fixing some small bugs of the code.
