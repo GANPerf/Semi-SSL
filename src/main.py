@@ -91,7 +91,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     best_acc = 0.0
     best_model = None
 
-
+    '''
     #step2: Using labeled data to fine-tuning MOCOv2
     for iter_num in range(1, args.max_iter + 1):  #args.max_iter + 1   3000 is enough for convergence.
         model.train(True)
@@ -180,7 +180,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
 
     #generate cluster label in unlabeled data. details see unlabeled_cluster.csv file
     generate_cluster(data,label,pseudo_label, cluster, confidence, arr_path)
-
+    '''
 
     #select suitable unlabeled data, arrange psuedo label as part of labeled data
     select_unlabel_data(args)
@@ -210,18 +210,19 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
         PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(img_labeled_q, img_labeled_k, label)
         out = classifier(feat_labeled)
         classifier_loss = criterions['CrossEntropy'](out, label)
-        PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled, PGC_label_labeled)  #Contrastive loss for instances with the same labels
+        #PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled, PGC_label_labeled)  #Contrastive loss for instances with the same labels
 
 
         ## For Unlabeled Data
         q_c_unlabeled, q_f_unlabeled = model.encoder_q(img_unlabeled_q)
         logit_unlabeled = classifier(q_f_unlabeled)
-        prob_unlabeled = torch.softmax(logit_unlabeled.detach(), dim=-1)
-        confidence_unlabeled, predict_unlabeled = torch.max(prob_unlabeled, dim=-1)
-        PGC_logit_unlabeled, PGC_label_unlabeled, feat_unlabeled = model(img_unlabeled_q, img_unlabeled_k, predict_unlabeled)
-        PGC_loss_unlabeled = criterions['KLDiv'](PGC_logit_unlabeled, PGC_label_unlabeled)
+        classifier_unlabel_loss = criterions['CrossEntropy'](logit_unlabeled, pseudo_label)  #pseudo_label will be from Step 3
+        #prob_unlabeled = torch.softmax(logit_unlabeled.detach(), dim=-1)
+        #confidence_unlabeled, predict_unlabeled = torch.max(prob_unlabeled, dim=-1)
+        #PGC_logit_unlabeled, PGC_label_unlabeled, feat_unlabeled = model(img_unlabeled_q, img_unlabeled_k, predict_unlabeled)
+        #PGC_loss_unlabeled = criterions['KLDiv'](PGC_logit_unlabeled, PGC_label_unlabeled)
 
-        total_loss = classifier_loss + PGC_loss_labeled + PGC_loss_unlabeled
+        total_loss = classifier_loss +classifier_unlabel_loss  #+ PGC_loss_labeled + PGC_loss_unlabeled
         total_loss.backward()
         optimizer.step()
         scheduler.step()
@@ -280,8 +281,8 @@ def read_config():
     parser.add_argument('--test_interval', type=float, default=3000)
     parser.add_argument("--pretrained", action="store_true", help="use the pre-trained model")
     parser.add_argument("--pretrained_path", type=str, default='~/.torch/models/moco_v2_800ep_pretrain.pth.tar')
-    parser.add_argument('--num_of_cluster', type=float, default=50)
-    parser.add_argument('--confidence', type=float, default=0.95)
+    parser.add_argument('--num_of_cluster', type=float, default=800)
+    parser.add_argument('--confidence', type=float, default=0.9)
     ## Only for Cifar100
     parser.add_argument("--expand_label", action="store_true", help="expand label to fit eval steps")
     parser.add_argument('--num_labeled', type=int, default=0, help='number of labeled data')
@@ -444,15 +445,15 @@ def select_unlabel_data(args):
 
     # delete the first row
     select_total_unlabel_data = np.delete(select_total_unlabel_data, (0), axis=0)
-    original_unlabel_data = np.delete(select_total_unlabel_data, (0), axis=0)
+
 
     hit_num = (select_total_unlabel_data[:, 3] == select_total_unlabel_data[:, 1]).sum()
     sample_num = select_total_unlabel_data.shape[0]
-    print("current acc of psuedo label in our method: {}".format(hit_num / float(sample_num)))
+    print("Current num:{}; current acc of psuedo label in our method: {}".format(hit_num, hit_num / float(sample_num)))
 
     hit_num = (high_confidence_arr [:, 3] == high_confidence_arr [:, 1]).sum()
     sample_num = high_confidence_arr.shape[0]
-    print("current acc of psuedo label in current paper: {}".format(hit_num / float(sample_num)))
+    print("Current num:{}; current acc of psuedo label in current paper: {}".format(hit_num, hit_num / float(sample_num)))
 
     dataframe = pd.DataFrame(
         {'image': select_total_unlabel_data[:, 0], 'real label': select_total_unlabel_data[:, 1],
