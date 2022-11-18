@@ -74,9 +74,9 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | FGVC Aircraft  | 15%|  |  |  |  |
 
 ## calculate the acc and num of pseudo unlabeled data to be correct on CUB200 15% 
-| Methods | N_C/Con  | N_C/Con | N_C/Con | N_C/Con | N_C/Con |N_C/Con  | N_C/Con | N_C/Con | N_C/Con | 
-|          |all/0.95|1200/0.95|1000/0.95|600/0.95 |400/0.95|200/0.95 | 100/0.95 |  200/0.8  | 200/0.9|
+| Methods | N_C/Con  | N_C/Con | N_C/Con | N_C/Con | N_C/Con |N_C/Con  | N_C/Con | N_C/Con | N_C/Con |
 | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- |
+|          |all/0.95|1200/0.95|1000/0.95|600/0.95 |400/0.95|200/0.95 | 100/0.95 |  200/0.8  | 200/0.9|
 | Current |  86.42%/592|86.42%/592|86.42%/592|86.42%/592|86.42%/592 | 86.42%/592|86.42%/592|71.11%/1051 | 80.55%/787 |
 | Ours  |  87.81%/526|89.03/479| 89.37%/437|90.19%/322|89.69%/235|90.83%/198|90.51%/124 | 76.92%/180 | 85.79%/157|
 
