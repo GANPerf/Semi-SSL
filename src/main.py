@@ -83,15 +83,12 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     len_labeled = len(dataset_loaders["train"])
     iter_labeled = iter(dataset_loaders["train"])
 
-    len_unlabeled = len(dataset_loaders["unlabeled_train"])
-    iter_unlabeled = iter(dataset_loaders["unlabeled_train"])
-
     criterions = {"CrossEntropy": nn.CrossEntropyLoss(), "KLDiv": nn.KLDivLoss(reduction='batchmean')}
 
     best_acc = 0.0
     best_model = None
 
-    '''
+
     #step2: Using labeled data to fine-tuning MOCOv2
     for iter_num in range(1, args.max_iter + 1):  #args.max_iter + 1   3000 is enough for convergence.
         model.train(True)
@@ -99,8 +96,8 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
         optimizer.zero_grad()
         if iter_num % len_labeled == 0:
             iter_labeled = iter(dataset_loaders["train"])
-        if iter_num % len_unlabeled == 0:
-            iter_unlabeled = iter(dataset_loaders["unlabeled_train"])
+        #if iter_num % len_unlabeled == 0:
+            #iter_unlabeled = iter(dataset_loaders["unlabeled_train"])
 
         data_labeled = iter_labeled.next()
 
@@ -140,6 +137,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     confidence= np.zeros(1)
     arr_path = ['first']
     for i, (images, target, path) in enumerate(dataset_loaders["unlabeled_train"]):
+        model.encoder_q.eval()
 
         images = images[0].to(device)
         #img_unlabeled_k = data_unlabeled[0][1].to(device)
@@ -180,13 +178,22 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
 
     #generate cluster label in unlabeled data. details see unlabeled_cluster.csv file
     generate_cluster(data,label,pseudo_label, cluster, confidence, arr_path)
-    '''
+
 
     #select suitable unlabeled data, arrange psuedo label as part of labeled data
-    select_unlabel_data(args)
+    select_unlabel_data(args)  #generate "select_suitable_unlabeled_data.csv" file
+
+    select_suitable_unlabeled_data = pd.read_csv('./select_suitable_unlabeled_data.csv')
+    with open('./CUB200/image_list/right_psuedo_train.txt','w') as f:
+        for line in select_suitable_unlabeled_data.values:
+            f.write((str(line[0][9:]))+'\t'+str(int(line[2]))+'\n')
 
 
+    len_labeled = len(dataset_loaders["train"])
+    iter_labeled = iter(dataset_loaders["train"])
 
+    len_unlabeled = len(dataset_loaders["right_psuedo_train"])
+    iter_unlabeled = iter(dataset_loaders["right_psuedo_train"])
     for iter_num in range(1, args.max_iter + 1):
         model.train(True)
         classifier.train(True)
@@ -194,7 +201,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
         if iter_num % len_labeled == 0:
             iter_labeled = iter(dataset_loaders["train"])
         if iter_num % len_unlabeled == 0:
-            iter_unlabeled = iter(dataset_loaders["unlabeled_train"])
+            iter_unlabeled = iter(dataset_loaders["right_psuedo_train"])
 
         data_labeled = iter_labeled.next()
         data_unlabeled = iter_unlabeled.next()
@@ -205,6 +212,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
 
         img_unlabeled_q = data_unlabeled[0][0].to(device)
         img_unlabeled_k = data_unlabeled[0][1].to(device)
+        pseudo_label = data_unlabeled[1].to(device)
 
         ## For Labeled Data
         PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(img_labeled_q, img_labeled_k, label)
@@ -237,8 +245,9 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
 
         ## Show Loss in TensorBoard
         writer.add_scalar('loss/classifier_loss', classifier_loss, iter_num)
-        writer.add_scalar('loss/PGC_loss_labeled', PGC_loss_labeled, iter_num)
-        writer.add_scalar('loss/PGC_loss_unlabeled', PGC_loss_unlabeled, iter_num)
+        writer.add_scalar('loss/classifier_loss', classifier_unlabel_loss, iter_num)
+        #writer.add_scalar('loss/PGC_loss_labeled', PGC_loss_labeled, iter_num)
+        #writer.add_scalar('loss/PGC_loss_unlabeled', PGC_loss_unlabeled, iter_num)
         writer.add_scalar('loss/total_loss', total_loss, iter_num)
 
         if iter_num % args.test_interval == 1 or iter_num == 500:
@@ -281,8 +290,8 @@ def read_config():
     parser.add_argument('--test_interval', type=float, default=3000)
     parser.add_argument("--pretrained", action="store_true", help="use the pre-trained model")
     parser.add_argument("--pretrained_path", type=str, default='~/.torch/models/moco_v2_800ep_pretrain.pth.tar')
-    parser.add_argument('--num_of_cluster', type=float, default=800)
-    parser.add_argument('--confidence', type=float, default=0.9)
+    parser.add_argument('--num_of_cluster', type=float, default=1200)
+    parser.add_argument('--confidence', type=float, default=0.95)
     ## Only for Cifar100
     parser.add_argument("--expand_label", action="store_true", help="expand label to fit eval steps")
     parser.add_argument('--num_labeled', type=int, default=0, help='number of labeled data')
