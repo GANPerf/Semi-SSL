@@ -90,7 +90,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
 
 
     #step2: Using labeled data to fine-tuning MOCOv2
-    for iter_num in range(1, args.max_iter + 1):  #args.max_iter + 1   3000 is enough for convergence.
+    for iter_num in range(1, args.max_iter + 1):  #args.max_iter + 1   10000 is enough for convergence.
         model.train(True)
         classifier.train(True)
         optimizer.zero_grad()
