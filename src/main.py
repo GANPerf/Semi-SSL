@@ -188,12 +188,17 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
         for line in select_suitable_unlabeled_data.values:
             f.write((str(line[0][9:]))+'\t'+str(int(line[2]))+'\n')
 
-
+            
+    #step 4-6
     len_labeled = len(dataset_loaders["train"])
     iter_labeled = iter(dataset_loaders["train"])
 
-    len_unlabeled = len(dataset_loaders["right_psuedo_train"])
-    iter_unlabeled = iter(dataset_loaders["right_psuedo_train"])
+    len_unlabeled = len(dataset_loaders["unlabeled_train"])   #right_psuedo_train/unlabeled_train
+    iter_unlabeled = iter(dataset_loaders["unlabeled_train"])
+
+    len_unlabeled_psuedo = len(dataset_loaders["right_psuedo_train"])  # right_psuedo_train/unlabeled_train
+    iter_unlabeled_psuedo = iter(dataset_loaders["right_psuedo_train"])
+
     for iter_num in range(1, args.max_iter + 1):
         model.train(True)
         classifier.train(True)
@@ -201,10 +206,13 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
         if iter_num % len_labeled == 0:
             iter_labeled = iter(dataset_loaders["train"])
         if iter_num % len_unlabeled == 0:
-            iter_unlabeled = iter(dataset_loaders["right_psuedo_train"])
+            iter_unlabeled = iter(dataset_loaders["unlabeled_train"])
+        if iter_num % len_unlabeled_psuedo == 0:
+            iter_unlabeled_psuedo = iter(dataset_loaders["right_psuedo_train"])
 
         data_labeled = iter_labeled.next()
         data_unlabeled = iter_unlabeled.next()
+        data_unlabeled_psuedo = iter_unlabeled_psuedo.next()
 
         img_labeled_q = data_labeled[0][0].to(device)
         img_labeled_k = data_labeled[0][1].to(device)
@@ -212,25 +220,37 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
 
         img_unlabeled_q = data_unlabeled[0][0].to(device)
         img_unlabeled_k = data_unlabeled[0][1].to(device)
-        pseudo_label = data_unlabeled[1].to(device)
+
+        img_unlabeled_q_psuedo = data_unlabeled_psuedo[0][0].to(device)
+        img_unlabeled_k_psuedo = data_unlabeled_psuedo[0][1].to(device)
+        pseudo_label = data_unlabeled_psuedo[1].to(device)
 
         ## For Labeled Data
         PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(img_labeled_q, img_labeled_k, label)
         out = classifier(feat_labeled)
         classifier_loss = criterions['CrossEntropy'](out, label)
-        #PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled, PGC_label_labeled)  #Contrastive loss for instances with the same labels
+        PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled, PGC_label_labeled)  #Contrastive loss for instances with the same labels
 
 
         ## For Unlabeled Data
         q_c_unlabeled, q_f_unlabeled = model.encoder_q(img_unlabeled_q)
         logit_unlabeled = classifier(q_f_unlabeled)
-        classifier_unlabel_loss = criterions['CrossEntropy'](logit_unlabeled, pseudo_label)  #pseudo_label will be from Step 3
-        #prob_unlabeled = torch.softmax(logit_unlabeled.detach(), dim=-1)
-        #confidence_unlabeled, predict_unlabeled = torch.max(prob_unlabeled, dim=-1)
-        #PGC_logit_unlabeled, PGC_label_unlabeled, feat_unlabeled = model(img_unlabeled_q, img_unlabeled_k, predict_unlabeled)
-        #PGC_loss_unlabeled = criterions['KLDiv'](PGC_logit_unlabeled, PGC_label_unlabeled)
 
-        total_loss = classifier_loss +classifier_unlabel_loss  #+ PGC_loss_labeled + PGC_loss_unlabeled
+        q_c_unlabeled_psuedo, q_f_unlabeled_psuedo = model.encoder_q(img_unlabeled_q_psuedo)
+        logit_unlabeled_psuedo = classifier(q_f_unlabeled_psuedo)
+        #classifier_unlabel_loss = criterions['CrossEntropy'](logit_unlabeled_psuedo, pseudo_label)  #pseudo_label will be from Step 3
+
+        prob_unlabeled = torch.softmax(logit_unlabeled.detach(), dim=-1)
+        confidence_unlabeled, predict_unlabeled = torch.max(prob_unlabeled, dim=-1)
+        PGC_logit_unlabeled, PGC_label_unlabeled, feat_unlabeled = model(img_unlabeled_q, img_unlabeled_k, predict_unlabeled) #predict_unlabeled/pseudo_label
+        PGC_loss_unlabeled = criterions['KLDiv'](PGC_logit_unlabeled, PGC_label_unlabeled)
+
+        #prob_unlabeled_psuedo = torch.softmax(logit_unlabeled_psuedo.detach(), dim=-1)
+        #confidence_unlabeled_psuedo, predict_unlabeled_psuedo = torch.max(prob_unlabeled_psuedo, dim=-1)
+        PGC_logit_unlabeled_psuedo, PGC_label_unlabeled_psuedo, feat_unlabeled_psuedo = model(img_unlabeled_q_psuedo, img_unlabeled_k_psuedo, pseudo_label)  # predict_unlabeled/pseudo_label
+        PGC_loss_unlabeled_psuedo = criterions['KLDiv'](PGC_logit_unlabeled_psuedo, PGC_label_unlabeled_psuedo)
+
+        total_loss = classifier_loss + PGC_loss_labeled + PGC_loss_unlabeled + PGC_loss_unlabeled_psuedo #+ classifier_unlabel_loss
         total_loss.backward()
         optimizer.step()
         scheduler.step()
