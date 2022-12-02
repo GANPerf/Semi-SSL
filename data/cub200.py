@@ -40,6 +40,7 @@ class CUB200(ImageList):
         "train50": "image_list/train_50.txt",
         "train30": "image_list/train_30.txt",
         "train15": "image_list/train_15.txt",
+        "right_psuedo_train":"image_list/right_psuedo_train.txt",
         "train1020030": "image_list/train_1020030.txt",
         "train1520030": "image_list/train_1520030.txt",
         "train3020030": "image_list/train_3020030.txt",
@@ -79,6 +80,10 @@ class CUB200(ImageList):
             full_list = read_list_from_file(full_list_file)
             unlabel_list = list(set(full_list) - set(train_list))
             save_list_to_file(data_list_file, unlabel_list)
+        elif split == 'right_psuedo_train':
+            list_name = 'right_psuedo_train' #+ str(label_ratio)
+            assert list_name in self.image_list
+            data_list_file = os.path.join(root, self.image_list[list_name])
         else:
             data_list_file = os.path.join(root, self.image_list['test'])
 
