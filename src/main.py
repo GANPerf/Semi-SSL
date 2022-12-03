@@ -88,19 +88,16 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     step2(args, classifier, criterions, dataset_loaders, device, iter_labeled, len_labeled, model, optimizer, scheduler)
     # step3: For Unlabeled Data, Divide U data into N clusters
     # Using numpy because our gpu memory is limited T_T
-    
     while is_loop:
         df_unlabeled_cluster, df_select_unlabel_data = step3(args, classifier, dataset_loaders, device, model)
         if not (is_pick_unlabeled_data(df_unlabeled_cluster)):
             break
 
         # merge selected_unlabel_data to dataset_loaders["train"]
-        dataset_loaders['train'].dataset.samples.extend(list(zip(df_select_unlabel_data['image'],df_select_unlabel_data['pseudo_label'].astype(float).astype(int))))
+        dataset_loaders['train'].dataset.samples.extend(list(zip(df_select_unlabel_data['image'],df_select_unlabel_data['real label'].astype(float).astype(int))))
 
         dataset_loaders["unlabeled_train"].dataset.samples=list(filter(lambda x: x[0] not in list(df_select_unlabel_data.loc[:, 'image'].values),
                     dataset_loaders['unlabeled_train'].dataset.samples))  # remove df_select_unlabel_data from unlabeled_train set
-
-
         # step 4-6
         print('step4-6 starts')
         len_labeled = len(dataset_loaders["train"])
@@ -262,7 +259,7 @@ def step2(args, classifier, criterions, dataset_loaders, device, iter_labeled, l
     print('step2 starts')
     model.train(True)
     classifier.train(True)
-    for iter_num in range(1, 100 + 1):  # args.max_iter + 1   10000 is enough for convergence.
+    for iter_num in range(1, args.max_iter + 1):  # args.max_iter + 1   10000 is enough for convergence.
 
         optimizer.zero_grad()
         if iter_num % len_labeled == 0:
@@ -421,7 +418,7 @@ def generate_cluster(data, label, pseudo_label, cluster, confidence, arr_path):
         j = j + 1
 
     dataframe = pd.DataFrame(
-        {'image': arr_path, 'real_label': label, 'cluster_label': cluster, 'pseudo_label': pseudo_label,
+        {'image': arr_path, 'real label': label, 'cluster label': cluster, 'pseudo_label': pseudo_label,
          'confidence_unlabeled': confidence})
     dataframe.to_csv("unlabeled_cluster.csv", index=False)
     return dataframe
