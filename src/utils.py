@@ -9,7 +9,7 @@ import os
 
 imagenet_mean=(0.485, 0.456, 0.406)
 imagenet_std=(0.229, 0.224, 0.225)
-num_workers=1
+num_workers=4
 batch_size=4
 def load_data(args):
     batch_size_dict = {"train": args.batch_size, "unlabeled_train": args.batch_size, "right_psuedo_train": args.batch_size,"test": 100}
