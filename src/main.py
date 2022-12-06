@@ -19,6 +19,8 @@ print("proj_dir: ", proj_dir)
 sys.path.append(proj_dir)
 
 
+confidence_unlabeled=0.9
+
 def test_cifar(loader, model, classifier, device):
     with torch.no_grad():
         start_test = True
@@ -79,9 +81,9 @@ def test(loader, model, classifier, device):
 
 
 
-def is_pick_unlabeled_data(df):
+def is_pick_unlabeled_data(df,confidence_unlabeled):
     df1 = df.groupby(['cluster_label','pseudo_label']).filter(lambda x: len(x) > 1)
-    if len(df1) > 1:
+    if len(df1[df1['confidence_unlabeled']>confidence_unlabeled]) > 1:
         return True
     return False
 
@@ -320,7 +322,7 @@ def train(args, model, classifier, dataset_loaders, optimizer, scheduler, device
     # Using numpy because our gpu memory is limited T_T
     while is_loop:
         df_unlabeled_cluster, df_select_unlabel_data = step3(args, classifier, dataset_loaders, device, model)
-        if not (is_pick_unlabeled_data(df_unlabeled_cluster)):
+        if not (is_pick_unlabeled_data(df_unlabeled_cluster,confidence_unlabeled)):
             break
 
         # merge selected_unlabel_data to dataset_loaders["train"]
