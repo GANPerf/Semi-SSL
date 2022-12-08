@@ -148,7 +148,7 @@ def step2(args, criterions, dataset_loaders, device, iter_labeled, len_labeled, 
     # step2: Using labeled data to fine-tuning MOCOv2
     print('step2 starts')
 
-    for iter_num in range(1, 10000 + 1):  # args.max_iter + 1   10000 is enough for convergence.
+    for iter_num in range(1, args.max_iter + 1):  # args.max_iter + 1   10000 is enough for convergence.
         model.train(True)
         optimizer.zero_grad()
         if iter_num % len_labeled == 0:
@@ -181,13 +181,13 @@ def step2(args, criterions, dataset_loaders, device, iter_labeled, len_labeled, 
         if iter_num % 100 == 0:
             print("step2: iter_num: {}".format(iter_num))
 
-def step4(args, classifier, criterions, dataset_loaders, device, iter_labeled, len_labeled, model, optimizer,
+def step4(args, classifier, criterions, dataset_loaders, device, model, optimizer,
           scheduler):
     # step4: Using labeled data (CE loss) to fine-tuning MOCOv2
     print('step4 starts')
     len_labeled = len(dataset_loaders["train"])
     iter_labeled = iter(dataset_loaders["train"])
-    for iter_num in range(1, 12000 + 1):  # args.max_iter + 1
+    for iter_num in range(1, args.max_iter + 1):
         model.train(True)
         classifier.train(True)
         optimizer.zero_grad()
@@ -224,9 +224,6 @@ def set_seed(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
-
-
-
 
 
 def accuracy_top1(data, label):
@@ -359,7 +356,7 @@ def train(args, model, model_ce, model_moco,classifier, classifier_ce, dataset_l
     best_acc = 0.0
     best_model = None
     step2(args, criterions, dataset_loaders, device, iter_labeled, len_labeled, model_moco, optimizer_moco, scheduler_moco)
-    step4(args, classifier_ce, criterions, dataset_loaders, device, iter_labeled, len_labeled, model_ce, optimizer_ce, scheduler_ce)
+    step4(args, classifier_ce, criterions, dataset_loaders, device, model_ce, optimizer_ce, scheduler_ce)
     # step3: For Unlabeled Data, Divide U data into N clusters
     # Using numpy because our gpu memory is limited T_T
 
