@@ -85,8 +85,8 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Methods | 10%|15%|30%|50% |
 | -- | -- | -- | -- | -- | 
 | Self-tuning paper| - |64.17|75.13|80.22|
-| Self-tuning repro |  ||||
-| Ours  |  |65.95|||
+| Self-tuning repro |  |64.32|74.53||
+| Ours  |  |65.95|75.89|80.89|
 
 
 ## classification accuracy (%) of SSL on StanfordCars 
