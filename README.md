@@ -93,7 +93,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Methods | 10%|15%|30%|50% |
 | -- | -- | -- | -- | -- | 
 | Self-tuning | - |72.50|83.58|88.11|
-| Self-tuning repro |  ||78.84|83.87|
+| Self-tuning repro | 61.77 ||78.84|83.87|
 | Ours  |  ||||
 
 ## classification accuracy (%) of SSL on Aircraft 
