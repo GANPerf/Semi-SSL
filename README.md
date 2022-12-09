@@ -84,8 +84,9 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 ## classification accuracy (%) of SSL on CUB200 
 | Methods | 10%|15%|30%|50% |
 | -- | -- | -- | -- | -- | 
-| Self-tuning |  |63.42|||
-| Ours  |  ||||
+| Self-tuning | - |64.17|75.13|80.22|
+| Self-tuning repro | 51.44 |63.42|71.29|75.65|
+| Ours  |  |65.95|||
 
 - We achieved better results than that reported in the paper, after fixing some small bugs of the code.
 
