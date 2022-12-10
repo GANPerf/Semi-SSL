@@ -81,20 +81,13 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Ours  |  87.81%/526|89.03%/479| 89.37%/437|90.19%/322|89.69%/235|90.83%/198|90.51%/124 | 85.25%/497|76.92%/180 | 85.79%/157|
 
 
-## classification accuracy (%) of SSL on CUB200 
-| Methods | 10%|15%|30%|50% |
-| -- | -- | -- | -- | -- | 
-| Self-tuning paper| - |64.17|75.13|80.22|
-| Self-tuning repro |  |64.32|74.53|80.31|
-| Ours  |  |65.95|75.89|80.89|
-
 
 ## classification accuracy (%) of SSL on StanfordCars 
 | Methods | 10%|15%|30%|50% |
 | -- | -- | -- | -- | -- | 
 | Self-tuning paper| - |72.50|83.58|88.11|
-| Self-tuning repro || 75.08 |||
-| Ours  |  ||||
+| Self-tuning repro || 75.08 |85.74||
+| Ours  |  |77.85|87.76||
 
 ## classification accuracy (%) of SSL on Aircraft 
 | Methods | 10%|15%|30%|50% |
@@ -102,6 +95,13 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Self-tuning paper| - |64.11|76.03|81.22|
 | Self-tuning repro |  ||||
 | Ours  |  ||||
+
+## classification accuracy (%) of SSL on CUB200 
+| Methods | 10%|15%|30%|50% |
+| -- | -- | -- | -- | -- | 
+| Self-tuning paper| - |64.17|75.13|80.22|
+| Self-tuning repro |  |64.32|74.53|80.31|
+| Ours  |  |65.95|75.89|80.89|
 - We achieved better results than that reported in the paper, after fixing some small bugs of the code.
 
 
