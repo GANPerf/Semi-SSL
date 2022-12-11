@@ -87,7 +87,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | -- | -- | -- | -- | 
 | Self-tuning paper |72.50|83.58|88.11|
 | Self-tuning repro | 75.08 |85.74|89.79|
-| Ours   |78.32|88.02||
+| Ours   |78.32|88.02|91.08|
 
 ## classification accuracy (%) of SSL on Aircraft 
 | Methods |15%|30%|50% |
