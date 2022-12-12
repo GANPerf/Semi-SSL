@@ -70,8 +70,6 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Dataset | Label Ratio  | no loss | CE loss | CE + CL loss | CL loss |
 | -- | -- | -- | -- | -- | -- |
 | CUB-200-2011 | 15%| 20% | 36% | 38% | 44% |
-| Stanford Cars  | 15% |  |  |  |  |
-| FGVC Aircraft  | 15%|  |  |  |  |
 
 ## calculate the acc and num of pseudo unlabeled data to be correct on CUB200 15% 
 | Methods | N_C/Con  | N_C/Con | N_C/Con | N_C/Con | N_C/Con |N_C/Con  | N_C/Con |
@@ -79,7 +77,6 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 |          |all/0.95|1200/0.95|1000/0.95|600/0.95 |400/0.95|200/0.95 | 100/0.95 | 
 | Current |  86.42%/592|86.42%/592|86.42%/592|86.42%/592|86.42%/592 | 86.42%/592|86.42%/592|
 | Ours  |  87.81%/526|89.03%/479| 89.37%/437|90.19%/322|89.69%/235|90.83%/198|90.51%/124 |
-
 | Methods | N_C/Con  | N_C/Con | N_C/Con | N_C/Con | N_C/Con |N_C/Con  | N_C/Con | N_C/Con | N_C/Con | N_C/Con |
 | -- | -- | -- |-- |-- |-- |-- |-- |
 |           | 800/0.9 |200/0.8  | 200/0.9|200/0.95|200/0.96|200/0.97|200/0.98|
