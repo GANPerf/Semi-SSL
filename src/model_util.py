@@ -36,6 +36,6 @@ def save_checkpoint_mod(cpt_path, model, state):
     print(f"Model saved to {cpt_path}")
     return
 
-# save_checkpoint()
-# with open(os.path.join(args.log_dir, f"checkpoint_path.txt"), 'w+') as f:
-#     f.write(f'{cpt_path}')
+save_checkpoint()
+with open(os.path.join(args.log_dir, f"checkpoint_path.txt"), 'w+') as f:
+    f.write(f'{cpt_path}')
