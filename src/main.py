@@ -20,7 +20,6 @@ print("proj_dir: ", proj_dir)
 sys.path.append(proj_dir)
 
 
-
 def test_cifar(loader, model, classifier, device):
     with torch.no_grad():
         start_test = True
