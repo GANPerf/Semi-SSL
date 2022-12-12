@@ -7,6 +7,8 @@ args=cfg.read_config()
 epoch=10
 
 
+print('just a test???')
+
 cpt_path = os.path.join(args.ckpt_dir,
                           f"{args.name}_{datetime.now().strftime('%m%d%H%M%S')}.pth")  # datetime.now().strftime('%Y%m%d_%H%M%S')
 
