@@ -1,22 +1,5 @@
 # Self-Tuning for Data-Efficient Deep Learning
 
-This repository contains the implementation code for paper: <br>
-__Self-Tuning for Data-Efficient Deep Learning__ <br>
-[Ximei Wang](https://wxm17.github.io/), [Jinghan Gao](https://github.com/getterk96), [Mingsheng Long](http://ise.thss.tsinghua.edu.cn/~mlong/), [Jianmin Wang](http://ise.thss.tsinghua.edu.cn/~wangjianmin/)<br>
-_38th International Conference on Machine Learning (ICML 2021)_ <br>
-[[Project Page](http://github.com/thuml/Self-Tuning)] [[Paper](https://arxiv.org/abs/2102.12903)] [[Video](https://icml.cc/virtual/2021/spotlight/8616)] [[Slide](https://github.com/thuml/Self-Tuning/blob/master/Self-Tuning-Slide.pdf)] [[Poster](https://github.com/thuml/Self-Tuning/blob/master/Self-Tuning-Poster.png)] [[Blog](https://mp.weixin.qq.com/s/H4xlndTZtWuXHni-vOC_vQ)] [[Zhihu](https://zhuanlan.zhihu.com/p/393342161)] [[SlidesLive](https://recorder-v3.slideslive.com/#/share?share=40334&s=f7988e61-bece-4a7a-a6ba-3e1a2b49b37b)]
-
-<p align="center">
-    <img src="Self-Tuning.png" width="900"> <br>
-</p>
-
-
-## Brief Introduction for Data-Efficient Deep Learning
-Mitigating the requirement for labeled data is a vital issue in deep learning community. However, _common practices_ of TL and SSL only focus on either the pre-trained model or unlabeled data. This paper unleashes the power of both worlds by proposing _a new setup_ named data-efficient deep learning, aims to mitigate the requirement of labeled data by unifying the exploration of labeled and unlabeled data and the transfer of pre-trained model. 
-
-To address the challenge of confirmation bias in self-training, a general _Pseudo Group Contrast_ mechanism is devised to mitigate the reliance on pseudo-labels and boost the tolerance to false labels. To tackle the model shift problem, we unify the exploration of labeled and unlabeled data and the transfer of a pre-trained model, with a shared key queue beyond just 'parallel training'. 
-Comprehensive experiments demonstrate that Self-Tuning outperforms its SSL and TL counterparts on five tasks by sharp margins, _e.g._, it doubles the accuracy of fine-tuning on Stanford-Cars provided with 15% labels. 
-
 
 ## Dependencies
 * python3.6
@@ -26,21 +9,6 @@ Comprehensive experiments demonstrate that Self-Tuning outperforms its SSL and T
 * numpy
 * argparse
 
-## Datasets
-| Dataset | Download Link |
-| -- | -- |
-| CUB-200-2011 | http://www.vision.caltech.edu/visipedia/CUB-200-2011.html |
-| Stanford Cars | http://ai.stanford.edu/~jkrause/cars/car_dataset.html |
-| FGVC Aircraft | http://www.robots.ox.ac.uk/~vgg/data/fgvc-aircraft/ |
-| Cifar100 | https://www.cs.toronto.edu/~kriz/cifar.html |
-
-- You can either download datasets via the above links or directly run the commands shown below to automatically download datasets as well as data lists from Tsinghua Cloud.
-
-## Disclaimer on Datasets
-
-This open-sourced code will download and prepare public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have licenses to use the dataset. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
-
-If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this code, please get in touch with us through a GitHub issue. Thanks for your contribution to the ML community!
 
 
 
@@ -57,13 +25,6 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 
 
 ```
-## Tensorboard Log
-| Dataset | Label Ratio 1 | Label Ratio 2 | Label Ratio 3 |
-| -- | -- | -- | -- |
-| CUB-200-2011 | [15%](http://github.com/thuml/Self-Tuning/blob/master/vis/CUB200_15.png) | [30%](http://github.com/thuml/Self-Tuning/blob/master/vis/CUB200_30.png) | [50%](http://github.com/thuml/Self-Tuning/blob/master/vis/CUB200_50.png) |
-| Stanford Cars  | [15%](http://github.com/thuml/Self-Tuning/blob/master/vis/StanfordCars_15.png) | [30%](http://github.com/thuml/Self-Tuning/blob/master/vis/StanfordCars_30.png) | [50%](http://github.com/thuml/Self-Tuning/blob/master/vis/StanfordCars_50.png) |
-| FGVC Aircraft  | [15%](http://github.com/thuml/Self-Tuning/blob/master/vis/Aircraft_15.png) | [30%](http://github.com/thuml/Self-Tuning/blob/master/vis/Aircraft_30.png) | [50%](http://github.com/thuml/Self-Tuning/blob/master/vis/Aircraft_50.png) |
-| Cifar100  | [400](http://github.com/thuml/Self-Tuning/blob/master/vis/Cifar100_400.png) | [2500](http://github.com/thuml/Self-Tuning/blob/master/vis/Cifar100_2500.png) | [10000](http://github.com/thuml/Self-Tuning/blob/master/vis/Cifar100_10000.png) |
 
 ## Experimental Results
 ## Step1+Step2, using CE/CL loss fune-tune MoCo
@@ -71,17 +32,22 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | -- | -- | -- | -- | -- | -- |
 | CUB-200-2011 | 15%| 20.72% | 36.28% | 44.52% | 48.24% |
 
-## calculate the acc and num of pseudo unlabeled data to be correct on CUB200 15% 
-| Methods | N_C/Con  | N_C/Con | N_C/Con | N_C/Con | N_C/Con |N_C/Con  | N_C/Con |
-| -- | -- | -- | -- | -- | -- | -- | -- | 
-|          |all/0.95|1200/0.95|1000/0.95|600/0.95 |400/0.95|200/0.95 | 100/0.95 | 
-| Current |  86.42%/592|86.42%/592|86.42%/592|86.42%/592|86.42%/592 | 86.42%/592|86.42%/592|
-| Ours  |  87.81%/526|89.03%/479| 89.37%/437|90.19%/322|89.69%/235|90.83%/198|90.51%/124 |
-| Methods | N_C/Con  | N_C/Con | N_C/Con | N_C/Con | N_C/Con |N_C/Con  | N_C/Con | N_C/Con | N_C/Con | N_C/Con |
-|           | 800/0.9 |200/0.8  | 200/0.9|200/0.95|200/0.96|200/0.97|200/0.98|
-| Current |80.55%/787|71.11%/1051 | 80.55%/787 |86.42%/592|||88.46/230|
-| Ours   | 85.25%/497|76.92%/180 | 85.79%/157|89.69%/235|||91.11/41|
+## calculate the acc and num of pseudo unlabeled data to be correct on CUB200 15% in first loop
+## fix confidence (Con=0.95), change number of cluster (N_C)
+| Methods | N_C  | N_C | N_C | N_C | N_C |N_C  | N_C |N_C |
+| -- | -- | -- | -- | -- | -- | -- | -- |  -- | 
+|          |all(1577)|1200|1000|800 |600 |400|200 | 100| 
+| Current | 82.63%/395|82.63%/395|82.63%/395|82.63%/395|82.63%/395 | 82.63%/395|82.63%/395|82.63%/395|
+| Ours  |  86.23%/332|86.78%/302|86.82%/270|86.96%/240|86.05%/185|85.99%/135|88.30%/83 |86.44%/51|
 
+## fix number of cluster (N_C=200), change confidence (Con)
+| Methods | Con  | Con | Con | Con |Con |Con  | Con | Con | Con | Con |
+| -- | -- | -- | -- | -- | -- | -- | -- | 
+|           |200/0.8  | 200/0.9|200/0.95|200/0.96|200/0.97|200/0.98|200/0.98|
+| Current|68.51%/790 | 75.55%/544 |82.63%/395|83.25%/343|85.42%/287|88.46%/230|90.12%/146|
+| Ours   |82.12%/147 | 85.07%/114|88.30%/83|90.36%/75|91.04%/61|91.11%/41|100.00%/37|
+
+##SSL results N_C=200, Con=0.98
 ## classification accuracy (%) of SSL on CUB200 
 | Methods |15%|30%|50% |
 | -- | -- | -- | -- | 
@@ -103,28 +69,5 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Self-tuning repro | 66.92 |79.87|84.76|
 | Ours  | 68.11 |82.03|86.74|
 
-- We achieved better results than that reported in the paper, after fixing some small bugs of the code.
 
 
-## Updates
-- [07/2021] We have created a [Blog post](https://mp.weixin.qq.com/s/H4xlndTZtWuXHni-vOC_vQ) in Chinese for this work. Check it out for more details!
-- [07/2021] We have released the code and models. You can find all reproduced checkpoints via [this link](https://cloud.tsinghua.edu.cn/d/4e8fb444c4634e76ab0a/).
-- [06/2021] A five minute [video](https://icml.cc/virtual/2021/spotlight/8616) is released to briefly introduce the main idea of Self-Tuning. 
-- [05/2021] Paper accepted to [ICML 2021](https://icml.cc/Conferences/2021/Schedule?type=Poster) as a __Short Talk__. 
-- [02/2021] [arXiv version](https://arxiv.org/abs/2102.12903) posted. Please stay tuned for updates.
-
-
-## Citation
-If you find this code or idea useful, please cite our work:
-```bib
-@inproceedings{wang2021selftuning,
-  title={Self-Tuning for Data-Efficient Deep Learning},
-  author={Wang, Ximei and Gao, Jinghan and Long, Mingsheng and Wang, Jianmin},
-  booktitle={International Conference on Machine Learning (ICML)},
-  year={2021}
-}
-```
-
-
-## Contact
-If you have any questions, feel free to contact us through email (wxm17@mails.tsinghua.edu.cn) or Github issues. Enjoy!
