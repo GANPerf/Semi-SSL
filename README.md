@@ -47,7 +47,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Current|68.51%/790 | 75.55%/544 |82.63%/395|83.25%/343|85.42%/287|88.46%/230|90.12%/146|
 | Ours   |82.12%/147 | 85.07%/114|88.30%/83|90.36%/75|91.04%/61|91.11%/41|100.00%/37|
 
-##SSL results N_C=200, Con=0.98
+## SSL results N_C=200, Con=0.98
 ## classification accuracy (%) of SSL on CUB200 
 | Methods |15%|30%|50% |
 | -- | -- | -- | -- | 
