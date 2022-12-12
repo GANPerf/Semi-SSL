@@ -1,4 +1,4 @@
-# Self-Tuning for Data-Efficient Deep Learning
+# A Simple Framework to Improve Semi-Supervised Baseline
 
 
 ## Dependencies
