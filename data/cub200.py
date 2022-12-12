@@ -41,7 +41,7 @@ class CUB200(ImageList):
         "train30": "image_list/train_30.txt",
         "train15": "image_list/train_15.txt",
         "train10": "image_list/train_10.txt",
-        "right_psuedo_train":"image_list/right_psuedo_train.txt",
+        #"right_psuedo_train":"image_list/right_psuedo_train.txt",
         "train1020030": "image_list/train_1020030.txt",
         "train1520030": "image_list/train_1520030.txt",
         "train3020030": "image_list/train_3020030.txt",
