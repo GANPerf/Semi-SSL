@@ -41,7 +41,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Ours  |  86.23%/332|86.78%/302|86.82%/270|86.96%/240|86.05%/185|85.99%/135|88.30%/83 |86.44%/51|
 
 ## fix number of cluster (N_C=200), change confidence (Con)
-| Methods | Con  | Con | Con | Con |Con |Con  | Con | Con | Con | Con |
+| Methods | Con  | Con | Con | Con |Con |Con  | Con |
 | -- | -- | -- | -- | -- | -- | -- | -- | 
 |           |200/0.8  | 200/0.9|200/0.95|200/0.96|200/0.97|200/0.98|200/0.98|
 | Current|68.51%/790 | 75.55%/544 |82.63%/395|83.25%/343|85.42%/287|88.46%/230|90.12%/146|
