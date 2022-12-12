@@ -108,7 +108,6 @@ def accuracy_top1(data, label):
     return top1
 
 
-
 def is_pick_unlabeled_data(df,confidence_unlabeled):
     df1 = df.groupby(['cluster_label','pseudo_label']).filter(lambda x: len(x) > 1)
     if len(df1[df1['confidence_unlabeled']>confidence_unlabeled]) >= 1:
