@@ -161,7 +161,7 @@ def step2(criterions, dataset_loaders, device, iter_labeled, len_labeled, model,
         img_labeled_q = data_labeled[0][0].to(device)
         img_labeled_k = data_labeled[0][1].to(device)
         label = data_labeled[1].to(device)
-        path = data_labeled[2]
+        #path = data_labeled[2]
 
         ## For Labeled Data
         PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(img_labeled_q, img_labeled_k, label)
@@ -392,6 +392,8 @@ def train(args, model, model_ce, model_moco, classifier, classifier_ce, dataset_
         milestones = [6000, 12000, 18000, 24000]
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones, gamma=0.1)
 
+        start = True
+
         for iter_num in range(1, args.max_iter + 1):
             model.train(True)
             classifier.train(True)
@@ -410,6 +412,7 @@ def train(args, model, model_ce, model_moco, classifier, classifier_ce, dataset_
 
             img_unlabeled_q = data_unlabeled[0][0].to(device)
             img_unlabeled_k = data_unlabeled[0][1].to(device)
+            label_in_unlabeldata = data_unlabeled[1].to(device)
 
             ## For Labeled Data
             PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(img_labeled_q, img_labeled_k, label)
@@ -427,6 +430,21 @@ def train(args, model, model_ce, model_moco, classifier, classifier_ce, dataset_
             PGC_logit_unlabeled, PGC_label_unlabeled, feat_unlabeled = model(img_unlabeled_q, img_unlabeled_k,
                                                                              predict_unlabeled)  # predict_unlabeled/pseudo_label
             PGC_loss_unlabeled = criterions['KLDiv'](PGC_logit_unlabeled, PGC_label_unlabeled)
+
+            #compute Pseudo label acc
+            if start:
+                all_labels = label_in_unlabeldata.data.float()
+                all_outputs = predict_unlabeled.data.float()
+                start = False
+            else:
+                all_labels = torch.cat((all_labels, label_in_unlabeldata.data.float()),0)
+                all_outputs = torch.cat((all_outputs, predict_unlabeled.data.float()),0)
+
+            if iter_num % len_unlabeled == 0:
+                pseudo_accuracy = torch.sum(all_outputs == all_labels).item() / float(all_labels.size()[0])
+                print("iter_num:{}; Pseudo Label Acc{}".format(iter_num, pseudo_accuracy))
+                start = True
+
 
             # prob_unlabeled_psuedo = torch.softmax(logit_unlabeled_psuedo.detach(), dim=-1)
             # confidence_unlabeled_psuedo, predict_unlabeled_psuedo = torch.max(prob_unlabeled_psuedo, dim=-1)
