@@ -27,10 +27,12 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 ```
 
 ## Experimental Results
-## Step1+Step2, using CE/CL loss fune-tune MoCo
+## Step1+Step2, using CE/CL loss fune-tune MoCo (%)
 | Dataset | Label Ratio  | no loss | CE loss | CE + CL loss | CL loss |
 | -- | -- | -- | -- | -- | -- |
-| CUB-200-2011 | 15%| 20.72% | 36.28% | 44.52% | 48.24% |
+| CUB-200-2011 | 15| 20.72 | 36.28 | 44.52 | 48.24 |
+| StanfordCars | 15|  |  |  |  |
+| Aircraft | 15|  |  |  |  |
 
 ## calculate the acc and num of pseudo unlabeled data to be correct on CUB200 15% in first loop
 ## fix confidence (Con=0.95), change number of cluster (N_C)
@@ -79,11 +81,16 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 ## Comparison of Pseudo Label Acc on Unlabeled Data on StanfordCars 15%
 | Methods\epoch |20|40| 60| 80|100 |
 | -- | -- | -- | -- |-- | -- |
-| Self-tuning||||||
+| Self-tuning|53.86|61.76|62.47|62.29|62.68|
 | Ours (first loop) |  |||||
 | Ours (second loop) |  |||||
 | Ours (third loop) |  |||||
 
-
-
+## Question 4: Is MOCOv2 vital in our method?
+## step 1 using ResNet50(pretrained=True) instead of MOCOv2
+## Step1+Step2, using CE/CL loss fune-tune ResNet50(pretrained=True)
+| StanfordCars (15%)   | no loss | CE loss | CE + CL loss | CL loss | SSL results |
+| -- | -- | -- | -- | -- | -- |-- |
+| Ours(MOCOv2)|  |  |  | | 78.32 |
+| Ours(ResNet50)|  |  |  |  |  |
 
