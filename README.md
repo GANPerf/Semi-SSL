@@ -81,6 +81,8 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | -- | -- | -- | -- |-- | -- |
 | Self-tuning||||||
 | Ours (first loop) |  |||||
+| Ours (second loop) |  |||||
+| Ours (third loop) |  |||||
 
 
 
