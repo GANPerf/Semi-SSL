@@ -90,7 +90,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 ## step 1 using ResNet50(pretrained=True) instead of MOCOv2
 ## Step1+Step2, using CE/CL loss fune-tune ResNet50(pretrained=True)
 | StanfordCars (15%)   | no loss | CE loss | CE + CL loss | CL loss | SSL results |
-| -- | -- | -- | -- | -- | -- |-- |
+| -- | -- | -- | -- | -- | -- |
 | Ours(MOCOv2)|  |  |  | | 78.32 |
 | Ours(ResNet50)|  |  |  |  |  |
 
