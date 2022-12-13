@@ -73,7 +73,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Methods |400|2500|10000 |
 | -- | -- | -- | -- |
 | Self-tuning paper|-|-|-|
-| Self-tuning repro | 41.97 |68.78|84.76|
+| Self-tuning repro | 41.97 |68.78|79.09|
 | Ours  |  |||
 
 ## Comparison of Pseudo Label Acc on Unlabeled Data on CUB200 15%
