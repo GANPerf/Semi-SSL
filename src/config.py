@@ -18,7 +18,7 @@ def read_config():
     parser.add_argument('--projector_dim', type=int, default=1024)
     parser.add_argument('--class_num', type=int, default=200)
     parser.add_argument('--gpu_id', type=int, default=1)
-    parser.add_argument('--max_iter', type=float, default=10000)
+    parser.add_argument('--max_iter', type=float, default=27005)
     parser.add_argument('--test_interval', type=float, default=3000)
     parser.add_argument("--pretrained", action="store_true", help="use the pre-trained model")
     parser.add_argument("--pretrained_path", type=str, default='~/.torch/models/moco_v2_800ep_pretrain.pth.tar')

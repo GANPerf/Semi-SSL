@@ -31,8 +31,8 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Dataset | Label Ratio  | no loss | CE loss | CE + CL loss | CL loss |
 | -- | -- | -- | -- | -- | -- |
 | CUB-200-2011 | 15| 20.72 | 36.28 | 44.52 | 48.24 |
-| StanfordCars | 15|  |  |  | 54.68 |
-| Aircraft | 15|  |  |  |  |
+| StanfordCars | 15| 10.66 | 41.49 | 52.75 | 54.68 |
+| Aircraft | 15| 24.14 | 41.27 | 47.62 | 50.46 |
 
 ## calculate the acc and num of pseudo unlabeled data to be correct on CUB200 15% in first loop
 ## fix confidence (Con=0.95), change number of cluster (N_C)
@@ -91,6 +91,11 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 ## Step1+Step2, using CE/CL loss fune-tune ResNet50(pretrained=True) compared to MOCOv2
 | StanfordCars (15%)   | no loss | CE loss | CE + CL loss | CL loss | SSL results |
 | -- | -- | -- | -- | -- | -- |
-| Ours(MOCOv2)|  |  |  | | 78.32 |
-| Ours(ResNet50)|  |  |  |  |  |
+| Ours(MOCOv2)| 10.66 | 41.49 | 52.75 | 54.68| 78.32 |
+| Ours(ResNet50)| 4.91 | 39.87 |  | 53.58 |  |
+
+| Aircraft (15%)   | no loss | CE loss | CE + CL loss | CL loss | SSL results |
+| -- | -- | -- | -- | -- | -- |
+| Ours(MOCOv2)| 24.14 | 41.27 | 47.62 |50.46 | 68.11 |
+| Ours(ResNet50)| 5.16 | 42.44 |  | 52.14 |  |
 

@@ -174,7 +174,7 @@ def step2(criterions, dataset_loaders, device, iter_labeled, len_labeled, model,
         classifier_loss = criterions['CrossEntropy'](out, label)
 
         # CL: using (pos1+pos2)/(pos1+pos2+neg) to fine tune
-        total_loss = PGC_loss_labeled + classifier_loss
+        total_loss = classifier_loss + PGC_loss_labeled
         total_loss.backward()
         optimizer.step()
         scheduler.step()
@@ -358,10 +358,8 @@ def train(args, model, model_ce, model_moco, classifier_step2, classifier, class
 
     best_acc = 0.0
     best_model = None
-    step2(criterions, dataset_loaders, device, iter_labeled, len_labeled, model_moco, optimizer_moco,
-          scheduler_moco, classifier_step2)
-    step4(classifier_ce, criterions, dataset_loaders, device, model_ce, optimizer_ce,
-          scheduler_ce)
+    step2(criterions, dataset_loaders, device, iter_labeled, len_labeled, model_moco, optimizer_moco, scheduler_moco, classifier_step2)
+    step4(classifier_ce, criterions, dataset_loaders, device, model_ce, optimizer_ce, scheduler_ce)
     # step3: For Unlabeled Data, Divide U data into N clusters
     # Using numpy because our gpu memory is limited T_T
 
@@ -434,7 +432,7 @@ def train(args, model, model_ce, model_moco, classifier_step2, classifier, class
             PGC_logit_unlabeled, PGC_label_unlabeled, feat_unlabeled = model(img_unlabeled_q, img_unlabeled_k,
                                                                              predict_unlabeled)  # predict_unlabeled/pseudo_label
             PGC_loss_unlabeled = criterions['KLDiv'](PGC_logit_unlabeled, PGC_label_unlabeled)
-
+            '''
             #compute Pseudo label acc
             if start:
                 all_labels = label_in_unlabeldata.data.float()
@@ -448,7 +446,7 @@ def train(args, model, model_ce, model_moco, classifier_step2, classifier, class
                 pseudo_accuracy = torch.sum(all_outputs == all_labels).item() / float(all_labels.size()[0])
                 print("iter_num:{}; Pseudo Label Acc{}".format(iter_num, pseudo_accuracy))
                 start = True
-
+            '''
 
             # prob_unlabeled_psuedo = torch.softmax(logit_unlabeled_psuedo.detach(), dim=-1)
             # confidence_unlabeled_psuedo, predict_unlabeled_psuedo = torch.max(prob_unlabeled_psuedo, dim=-1)
@@ -526,8 +524,8 @@ def main():
     model_path = os.path.join(logdir, "%s_best.pkl" % (model_name))
 
     # Step1: Initialize model, using pretrained MOCO v2 in pretrained_path
-    network, feature_dim = load_network('MOCOv2')
-    model_moco = MOCOTuning(network=network, backbone='MOCOv2', queue_size=args.queue_size,
+    network, feature_dim = load_network(args.backbone)   #'MOCOv2'
+    model_moco = MOCOTuning(network=network, backbone=args.backbone, queue_size=args.queue_size,  #'MOCOv2'
                             projector_dim=args.projector_dim, feature_dim=feature_dim,
                             class_num=args.class_num, momentum=args.momentum, pretrained=args.pretrained,
                             pretrained_path=args.pretrained_path).to(device)
