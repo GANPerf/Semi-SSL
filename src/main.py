@@ -161,7 +161,7 @@ def step2(criterions, dataset_loaders, device, iter_labeled, len_labeled, model,
         img_labeled_q = data_labeled[0][0].to(device)
         img_labeled_k = data_labeled[0][1].to(device)
         label = data_labeled[1].to(device)
-        path = data_labeled[2]
+        #path = data_labeled[2]
 
         ## For Labeled Data
         PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(img_labeled_q, img_labeled_k, label)

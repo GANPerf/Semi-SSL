@@ -76,5 +76,12 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Self-tuning repro | 41.97 |68.78|84.76|
 | Ours  |  |||
 
+## classification accuracy (%) of SSL on Cifar100 (ResNet50)
+| Methods |400|2500|10000 |
+| -- | -- | -- | -- |
+| Self-tuning paper|-|-|-|
+| Self-tuning repro | 41.97 |68.78|84.76|
+| Ours  |  |||
+
 
 
