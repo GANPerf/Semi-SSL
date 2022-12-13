@@ -80,7 +80,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Methods\epoch |20|40| 60| 80|100 |
 | -- | -- | -- | -- |-- | -- |
 | Self-tuning||||||
-| Ours (first loop) | 68.11 |82.03|86.74|||
+| Ours (first loop) |  |||||
 
 
 
