@@ -88,6 +88,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 
 ## Question 4: Is MOCOv2 vital in our method?
 step 1 using ResNet50(pretrained=True) instead of MOCOv2
+
 Step1+Step2, using CE/CL loss fune-tune ResNet50(pretrained=True) compared to MOCOv2
 | StanfordCars (15%)   | no loss | CE loss | CE + CL loss | CL loss | Semi-SL results |
 | -- | -- | -- | -- | -- | -- |
@@ -104,6 +105,7 @@ Step1+Step2, using CE/CL loss fune-tune ResNet50(pretrained=True) compared to MO
 
 ## Question 2: the internal and external double loop improve performance? 
 (directly sort by confidence, and move the unlabeled set to the labeled set)
+
 (Nothing to do with step1 and step2)
 
 | StanfordCars (15%) | Con_external  | Con-external | Con_external | Con_external |Con_external |
