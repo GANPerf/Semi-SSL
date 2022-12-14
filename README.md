@@ -110,5 +110,5 @@ Step1+Step2, using CE/CL loss fune-tune ResNet50(pretrained=True) compared to MO
 | -- | -- | -- | -- | -- | -- | 
 |           |0.95|0.96|0.97|0.98|0.99|
 | Self-tuning repro|75.08|75.08|75.08|75.08|75.08|
-| Ours_no_circle||||78.32||
+| Ours_no_circle||||||
 | Ours||||78.32||
