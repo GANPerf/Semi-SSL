@@ -79,23 +79,25 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Ours  |  |||
 
 ## Comparison of Pseudo Label Acc on Unlabeled Data on StanfordCars 15%
-| Methods\epoch |20|40| 60| 80|100 |
+| Methods\epoch |20|40| 60| 80|100 |Semi-SL results |
 | -- | -- | -- | -- |-- | -- |
-| Self-tuning|53.86|61.76|62.47|62.29|62.68|
-| Ours (first loop) |  |||||
-| Ours (second loop) |  |||||
-| Ours (third loop) |  |||||
+| Self-tuning|53.86|61.76|62.47|62.29|62.68|75.08|
+| Ours (first loop) | 53.52 |61.61|61.98|62.43|62.65|74.57|
+| Ours (second loop) |59.85 |65.50|66.15|66.75|66.27|77.28|
+| Ours (third loop) | 61.85 |66.77|67.24|66.90|67.15|78.11|
 
 ## Question 4: Is MOCOv2 vital in our method?
 ## step 1 using ResNet50(pretrained=True) instead of MOCOv2
 ## Step1+Step2, using CE/CL loss fune-tune ResNet50(pretrained=True) compared to MOCOv2
-| StanfordCars (15%)   | no loss | CE loss | CE + CL loss | CL loss | SSL results |
+| StanfordCars (15%)   | no loss | CE loss | CE + CL loss | CL loss | Semi-SL results |
 | -- | -- | -- | -- | -- | -- |
+| self-tuning repro | - | - | - | - | 75.08 |
 | Ours(MOCOv2)| 10.66 | 41.49 | 52.75 | 54.68| 78.32 |
-| Ours(ResNet50)| 4.91 | 39.87 |  | 53.58 |  |
+| Ours(ResNet50)| 4.91 | 39.87 | 53.39 | 53.58 | 77.89 |
 
 | Aircraft (15%)   | no loss | CE loss | CE + CL loss | CL loss | SSL results |
 | -- | -- | -- | -- | -- | -- |
+| self-tuning repro | - | - | - | - | 66.92|
 | Ours(MOCOv2)| 24.14 | 41.27 | 47.62 |50.46 | 68.11 |
-| Ours(ResNet50)| 5.16 | 42.44 |  | 52.14 |  |
-
+| Ours(ResNet50)| 5.16 | 42.44 | 52.03 | 52.14 | 68.68 |
+## Answer: MOCOv2 maybe not necessary, we can use resnet50(pretrained=True) to replace MOCOv2 in our step1 and step 2
