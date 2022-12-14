@@ -81,7 +81,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 ## Comparison of Pseudo Label Acc on Unlabeled Data on StanfordCars 15%
 | Methods\epoch |20|40| 60| 80|100 |Semi-SL results |
 | -- | -- | -- | -- |-- | -- |-- |
-| Self-tuning|53.86|61.76|62.47|62.29|62.68|75.08|
+| Self-tuning repro|53.86|61.76|62.47|62.29|62.68|75.08|
 | Ours (first loop) | 53.52 |61.61|61.98|62.43|62.65|74.57|
 | Ours (second loop) |59.85 |65.50|66.15|66.75|66.27|77.28|
 | Ours (third loop) | 61.85 |66.77|67.24|66.90|67.15|78.11|
@@ -95,7 +95,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Ours(MOCOv2)| 10.66 | 41.49 | 52.75 | 54.68| 78.32 |
 | Ours(ResNet50)| 4.91 | 39.87 | 53.39 | 53.58 | 77.89 |
 
-| Aircraft (15%)   | no loss | CE loss | CE + CL loss | CL loss | SSL results |
+| Aircraft (15%)   | no loss | CE loss | CE + CL loss | CL loss | Semi-SL results |
 | -- | -- | -- | -- | -- | -- |
 | self-tuning repro | - | - | - | - | 66.92|
 | Ours(MOCOv2)| 24.14 | 41.27 | 47.62 |50.46 | 68.11 |
