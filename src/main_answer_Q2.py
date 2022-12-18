@@ -348,140 +348,136 @@ def train(args, model, model_ce, model_moco, classifier_step2, classifier, class
 
     best_acc = 0.0
     best_model = None
-    step2(criterions, dataset_loaders, device, iter_labeled, len_labeled, model_moco, optimizer_moco, scheduler_moco, classifier_step2)
+    #step2(criterions, dataset_loaders, device, iter_labeled, len_labeled, model_moco, optimizer_moco, scheduler_moco, classifier_step2)
     step4(classifier_ce, criterions, dataset_loaders, device, model_ce, optimizer_ce, scheduler_ce)
     # step3: For Unlabeled Data, Divide U data into N clusters
     # Using numpy because our gpu memory is limited T_T
 
-    while is_loop:
-        df_unlabeled_cluster, df_select_unlabel_data = step3(args, classifier_ce, dataset_loaders, device, model_moco,
+
+    df_unlabeled_cluster, df_select_unlabel_data = step3(args, classifier_ce, dataset_loaders, device, model_moco,
                                                              model_ce)
 
-        if not (is_pick_unlabeled_data(df_unlabeled_cluster, args.confidence)):
-            break
 
+    # merge selected_unlabel_data to dataset_loaders["train"]
+    dataset_loaders['train'].dataset.samples.extend(list(
+        zip(df_select_unlabel_data['image'], df_select_unlabel_data['pseudo_label'].astype(float).astype(int))))
 
-        # merge selected_unlabel_data to dataset_loaders["train"]
-        dataset_loaders['train'].dataset.samples.extend(list(
-            zip(df_select_unlabel_data['image'], df_select_unlabel_data['pseudo_label'].astype(float).astype(int))))
+    dataset_loaders["unlabeled_train"].dataset.samples = list(
+        filter(lambda x: x[0] not in list(df_select_unlabel_data.loc[:, 'image'].values),
+                dataset_loaders[
+                    'unlabeled_train'].dataset.samples))  # remove df_select_unlabel_data from unlabeled_train set
 
-        dataset_loaders["unlabeled_train"].dataset.samples = list(
-            filter(lambda x: x[0] not in list(df_select_unlabel_data.loc[:, 'image'].values),
-                   dataset_loaders[
-                       'unlabeled_train'].dataset.samples))  # remove df_select_unlabel_data from unlabeled_train set
+    # step 5-6
+    print('step4-6 starts')
+    len_labeled = len(dataset_loaders["train"])
+    iter_labeled = iter(dataset_loaders["train"])
 
-        # step 5-6
-        print('step4-6 starts')
-        len_labeled = len(dataset_loaders["train"])
-        iter_labeled = iter(dataset_loaders["train"])
+    len_unlabeled = len(dataset_loaders["unlabeled_train"])  # right_psuedo_train/unlabeled_train
+    iter_unlabeled = iter(dataset_loaders["unlabeled_train"])
 
-        len_unlabeled = len(dataset_loaders["unlabeled_train"])  # right_psuedo_train/unlabeled_train
-        iter_unlabeled = iter(dataset_loaders["unlabeled_train"])
+    # reset lr, optimizer and scheduler5
+    optimizer = optim.SGD([
+        {'params': model.parameters()},
+        {'params': classifier.parameters(), 'lr': args.lr * args.lr_ratio},
+    ], lr=args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True)
+    milestones = [6000, 12000, 18000, 24000]
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones, gamma=0.1)
 
-        # reset lr, optimizer and scheduler5
-        optimizer = optim.SGD([
-            {'params': model.parameters()},
-            {'params': classifier.parameters(), 'lr': args.lr * args.lr_ratio},
-        ], lr=args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True)
-        milestones = [6000, 12000, 18000, 24000]
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones, gamma=0.1)
+    start = True
 
-        start = True
+    for iter_num in range(1, args.max_iter + 1):
+        model.train(True)
+        classifier.train(True)
+        optimizer.zero_grad()
+        if iter_num % len_labeled == 0:
+            iter_labeled = iter(dataset_loaders["train"])
+        if iter_num % len_unlabeled == 0:
+            iter_unlabeled = iter(dataset_loaders["unlabeled_train"])
 
-        for iter_num in range(1, args.max_iter + 1):
-            model.train(True)
-            classifier.train(True)
-            optimizer.zero_grad()
-            if iter_num % len_labeled == 0:
-                iter_labeled = iter(dataset_loaders["train"])
-            if iter_num % len_unlabeled == 0:
-                iter_unlabeled = iter(dataset_loaders["unlabeled_train"])
+        data_labeled = iter_labeled.next()
+        data_unlabeled = iter_unlabeled.next()
 
-            data_labeled = iter_labeled.next()
-            data_unlabeled = iter_unlabeled.next()
+        img_labeled_q = data_labeled[0][0].to(device)
+        img_labeled_k = data_labeled[0][1].to(device)
+        label = data_labeled[1].to(device)
 
-            img_labeled_q = data_labeled[0][0].to(device)
-            img_labeled_k = data_labeled[0][1].to(device)
-            label = data_labeled[1].to(device)
+        img_unlabeled_q = data_unlabeled[0][0].to(device)
+        img_unlabeled_k = data_unlabeled[0][1].to(device)
+        label_in_unlabeldata = data_unlabeled[1].to(device)
 
-            img_unlabeled_q = data_unlabeled[0][0].to(device)
-            img_unlabeled_k = data_unlabeled[0][1].to(device)
-            label_in_unlabeldata = data_unlabeled[1].to(device)
-
-            ## For Labeled Data
-            PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(img_labeled_q, img_labeled_k, label)
-            out = classifier(feat_labeled)
-            classifier_loss = criterions['CrossEntropy'](out, label)
-            PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled,
+        ## For Labeled Data
+        PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(img_labeled_q, img_labeled_k, label)
+        out = classifier(feat_labeled)
+        classifier_loss = criterions['CrossEntropy'](out, label)
+        PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled,
                                                    PGC_label_labeled)  # Contrastive loss for instances with the same labels
 
-            ## For Unlabeled Data
-            _, q_f_unlabeled = model.encoder_q(img_unlabeled_q)
-            logit_unlabeled = classifier(q_f_unlabeled)
+        ## For Unlabeled Data
+        _, q_f_unlabeled = model.encoder_q(img_unlabeled_q)
+        logit_unlabeled = classifier(q_f_unlabeled)
 
-            prob_unlabeled = torch.softmax(logit_unlabeled.detach(), dim=-1)
-            confidence_unlabeled, predict_unlabeled = torch.max(prob_unlabeled, dim=-1)
-            PGC_logit_unlabeled, PGC_label_unlabeled, feat_unlabeled = model(img_unlabeled_q, img_unlabeled_k,
+        prob_unlabeled = torch.softmax(logit_unlabeled.detach(), dim=-1)
+        confidence_unlabeled, predict_unlabeled = torch.max(prob_unlabeled, dim=-1)
+        PGC_logit_unlabeled, PGC_label_unlabeled, feat_unlabeled = model(img_unlabeled_q, img_unlabeled_k,
                                                                              predict_unlabeled)  # predict_unlabeled/pseudo_label
-            PGC_loss_unlabeled = criterions['KLDiv'](PGC_logit_unlabeled, PGC_label_unlabeled)
-            '''
-            #compute Pseudo label acc
-            if start:
-                all_labels = label_in_unlabeldata.data.float()
-                all_outputs = predict_unlabeled.data.float()
-                start = False
+        PGC_loss_unlabeled = criterions['KLDiv'](PGC_logit_unlabeled, PGC_label_unlabeled)
+        '''
+        #compute Pseudo label acc
+        if start:
+            all_labels = label_in_unlabeldata.data.float()
+            all_outputs = predict_unlabeled.data.float()
+            start = False
+        else:
+            all_labels = torch.cat((all_labels, label_in_unlabeldata.data.float()),0)
+            all_outputs = torch.cat((all_outputs, predict_unlabeled.data.float()),0)
+
+        if iter_num % len_unlabeled == 0:
+            pseudo_accuracy = torch.sum(all_outputs == all_labels).item() / float(all_labels.size()[0])
+            print("iter_num:{}; Pseudo Label Acc{}".format(iter_num, pseudo_accuracy))
+            start = True
+        '''
+
+        # prob_unlabeled_psuedo = torch.softmax(logit_unlabeled_psuedo.detach(), dim=-1)
+        # confidence_unlabeled_psuedo, predict_unlabeled_psuedo = torch.max(prob_unlabeled_psuedo, dim=-1)
+
+        total_loss = classifier_loss + PGC_loss_labeled + PGC_loss_unlabeled  # + classifier_unlabel_loss
+        total_loss.backward()
+        optimizer.step()
+        scheduler.step()
+
+        ## Calculate the training accuracy of current iteration
+        if iter_num % 100 == 0:
+            _, predict = torch.max(out, 1)
+            hit_num = (predict == label).sum().item()
+            sample_num = predict.size(0)
+            print("iter_num: {0:2d}; current acc: {1:8.2f}".format(iter_num, hit_num / float(sample_num)))
+
+        ## Show Loss in TensorBoard
+        writer.add_scalar('loss/classifier_loss', classifier_loss, iter_num)
+        # writer.add_scalar('loss/classifier_loss', classifier_unlabel_loss, iter_num)
+        # writer.add_scalar('loss/PGC_loss_labeled', PGC_loss_labeled, iter_num)
+        # writer.add_scalar('loss/PGC_loss_unlabeled', PGC_loss_unlabeled, iter_num)
+        writer.add_scalar('loss/total_loss', total_loss, iter_num)
+        # print(iter_num % args.test_interval == 1 or iter_num == 500)
+        if iter_num % args.test_interval == 1 or iter_num == 500:
+            model.eval()
+            classifier.eval()
+            if 'cifar100' in args.root:
+                test_acc = test_cifar(dataset_loaders, model, classifier, device=device)
             else:
-                all_labels = torch.cat((all_labels, label_in_unlabeldata.data.float()),0)
-                all_outputs = torch.cat((all_outputs, predict_unlabeled.data.float()),0)
+                test_acc = test(dataset_loaders, model, classifier, device=device)
+            print("iter_num: {}; test_acc: {}".format(iter_num, test_acc))
+            writer.add_scalar('acc/test_acc', test_acc, iter_num)
+            if test_acc > best_acc:
+                best_acc = test_acc
+                best_model = {'model': model.state_dict(),
+                                'classifier': classifier.state_dict(),
+                                'step': iter_num
+                                }
+    print("best acc: %.4f" % (best_acc))
+    torch.save(best_model, model_path)
+    print("The best model has been saved in ", model_path)
 
-            if iter_num % len_unlabeled == 0:
-                pseudo_accuracy = torch.sum(all_outputs == all_labels).item() / float(all_labels.size()[0])
-                print("iter_num:{}; Pseudo Label Acc{}".format(iter_num, pseudo_accuracy))
-                start = True
-            '''
-
-            # prob_unlabeled_psuedo = torch.softmax(logit_unlabeled_psuedo.detach(), dim=-1)
-            # confidence_unlabeled_psuedo, predict_unlabeled_psuedo = torch.max(prob_unlabeled_psuedo, dim=-1)
-
-            total_loss = classifier_loss + PGC_loss_labeled + PGC_loss_unlabeled  # + classifier_unlabel_loss
-            total_loss.backward()
-            optimizer.step()
-            scheduler.step()
-
-            ## Calculate the training accuracy of current iteration
-            if iter_num % 100 == 0:
-                _, predict = torch.max(out, 1)
-                hit_num = (predict == label).sum().item()
-                sample_num = predict.size(0)
-                print("iter_num: {0:2d}; current acc: {1:8.2f}".format(iter_num, hit_num / float(sample_num)))
-
-            ## Show Loss in TensorBoard
-            writer.add_scalar('loss/classifier_loss', classifier_loss, iter_num)
-            # writer.add_scalar('loss/classifier_loss', classifier_unlabel_loss, iter_num)
-            # writer.add_scalar('loss/PGC_loss_labeled', PGC_loss_labeled, iter_num)
-            # writer.add_scalar('loss/PGC_loss_unlabeled', PGC_loss_unlabeled, iter_num)
-            writer.add_scalar('loss/total_loss', total_loss, iter_num)
-            # print(iter_num % args.test_interval == 1 or iter_num == 500)
-            if iter_num % args.test_interval == 1 or iter_num == 500:
-                model.eval()
-                classifier.eval()
-                if 'cifar100' in args.root:
-                    test_acc = test_cifar(dataset_loaders, model, classifier, device=device)
-                else:
-                    test_acc = test(dataset_loaders, model, classifier, device=device)
-                print("iter_num: {}; test_acc: {}".format(iter_num, test_acc))
-                writer.add_scalar('acc/test_acc', test_acc, iter_num)
-                if test_acc > best_acc:
-                    best_acc = test_acc
-                    best_model = {'model': model.state_dict(),
-                                  'classifier': classifier.state_dict(),
-                                  'step': iter_num
-                                  }
-        print("best acc: %.4f" % (best_acc))
-        torch.save(best_model, model_path)
-        print("The best model has been saved in ", model_path)
-
-        # is_loop = is_pick_unlabeled_data(df_unlabeled_cluster)
 
 
 def main():
