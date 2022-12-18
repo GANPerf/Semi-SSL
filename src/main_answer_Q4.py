@@ -95,6 +95,7 @@ def step3(args, classifier, dataset_loaders, device, model, model_ce):  # first 
 
     for i, (images, target, path) in enumerate(dataset_loaders["unlabeled_train"]):
         model.encoder_q.eval()
+        model_ce.eval()
         classifier.eval()
 
         images = images[0].to(device)

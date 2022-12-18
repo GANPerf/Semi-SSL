@@ -85,6 +85,7 @@ python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --
 | Ours (first loop) | 53.52 |61.61|61.98|62.43|62.65|74.57|
 | Ours (second loop) |59.85 |65.50|66.15|66.75|66.27|77.28|
 | Ours (third loop) | 61.85 |66.77|67.24|66.90|67.15|78.11|
+| Ours (fourth loop) | 58.73 |67.56|67.16|67.63|66.98|77.60|
 
 ## Question 4: Is MOCOv2 vital in our method?
 step 1 using ResNet50(pretrained=True) instead of MOCOv2
@@ -108,9 +109,9 @@ Step1+Step2, using CE/CL loss fune-tune ResNet50(pretrained=True) compared to MO
 
 (Nothing to do with step1 and step2)
 
-| StanfordCars (15%) | Con_external  | Con-external | Con_external | Con_external |Con_external |
-| -- | -- | -- | -- | -- | -- | 
-|           |0.95|0.96|0.97|0.98|0.99|
+| StanfordCars (15%) | Con_external  | Con-external | Con_external | Con_external |Con_external |Con_external |Con_external |
+| -- | -- | -- | -- | -- | -- | -- | -- | 
+|           |0.80|0.90|0.95|0.96|0.97|0.98|0.99|
 | Self-tuning repro|75.08|75.08|75.08|75.08|75.08|
-| Ours_no_circle||||||
-| Ours||||78.32||
+| Ours_no_circle||||||||
+| Ours|77.63|78.09|78.72|78.31|78.93|78.32|79.21|
