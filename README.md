@@ -102,6 +102,7 @@ Step1+Step2, using CE/CL loss fune-tune ResNet50(pretrained=True) compared to MO
 | self-tuning repro | - | - | - | - | 66.92|
 | Ours(MOCOv2)| 24.14 | 41.27 | 47.62 |50.46 | 68.11 |
 | Ours(ResNet50)| 5.16 | 42.44 | 52.03 | 52.14 | 68.68 |
+
 Answer: MOCOv2 maybe not necessary, we can use resnet50(pretrained=True) to replace MOCOv2 in our step1 and step 2
 
 ## Question 2: the internal and external double loop improve performance? 
@@ -115,4 +116,5 @@ Answer: MOCOv2 maybe not necessary, we can use resnet50(pretrained=True) to repl
 | Self-tuning repro|75.08|75.08|75.08|75.08|75.08|75.08|75.08|
 | Ours_no_circle|71.62|73.32|75.90|75.31|76.02|75.44|75.45|
 | Ours|77.63|78.09|78.72|78.31|78.93|78.32|79.21|
+
 Answer: Yes
