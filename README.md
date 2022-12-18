@@ -109,9 +109,9 @@ Step1+Step2, using CE/CL loss fune-tune ResNet50(pretrained=True) compared to MO
 
 (Nothing to do with step1 and step2)
 
-| StanfordCars (15%) | Con_external  | Con-external | Con_external | Con_external |Con_external |Con_external |Con_external |
+| StanfordCars (15%) | Con  | Con | Con | Con |Con |Con |Con |
 | -- | -- | -- | -- | -- | -- | -- | -- | 
 |           |0.80|0.90|0.95|0.96|0.97|0.98|0.99|
-| Self-tuning repro|75.08|75.08|75.08|75.08|75.08|
+| Self-tuning repro|75.08|75.08|75.08|75.08|75.08|75.08|75.08|
 | Ours_no_circle||||||||
 | Ours|77.63|78.09|78.72|78.31|78.93|78.32|79.21|

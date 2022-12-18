@@ -356,7 +356,7 @@ def train(args, model, model_ce, model_moco, classifier_step2, classifier, class
     while is_loop:
         df_unlabeled_cluster, df_select_unlabel_data = step3(args, classifier_ce, dataset_loaders, device, model_moco,
                                                              model_ce)
-        print(df_select_unlabel_data)
+
         if not (is_pick_unlabeled_data(df_unlabeled_cluster, args.confidence)):
             break
 
@@ -369,7 +369,7 @@ def train(args, model, model_ce, model_moco, classifier_step2, classifier, class
             filter(lambda x: x[0] not in list(df_select_unlabel_data.loc[:, 'image'].values),
                    dataset_loaders[
                        'unlabeled_train'].dataset.samples))  # remove df_select_unlabel_data from unlabeled_train set
-        continue
+
         # step 5-6
         print('step4-6 starts')
         len_labeled = len(dataset_loaders["train"])
