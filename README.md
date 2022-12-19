@@ -15,13 +15,13 @@
 ## Quick Start
 - The running commands for several datasets are shown below. Please refer to ``run.sh`` for commands for datasets with other label ratios.
 ```
-python src/main.py  --root ./StanfordCars --batch_size 24 --logdir vis/ --gpu_id 0 --queue_size 32 --projector_dim 1024 --backbone resnet50  --label_ratio 15 --pretrained
-python src/main.py  --root ./CUB200 --batch_size 24 --logdir vis/ --gpu_id 1 --queue_size 32 --projector_dim 1024 --backbone resnet50 --label_ratio 15 --pretrained
-python src/main.py  --root ./Aircraft --batch_size 24 --logdir vis/ --gpu_id 2 --queue_size 32 --projector_dim 1024 --backbone resnet50 --label_ratio 15 --pretrained
+python src/main.py  --root ./StanfordCars --batch_size 24 --logdir vis/ --gpu_id 0 --queue_size 32 --projector_dim 1024 --backbone resnet50  --label_ratio 15 --pretrained --confidence 0.98
+python src/main.py  --root ./CUB200 --batch_size 24 --logdir vis/ --gpu_id 1 --queue_size 32 --projector_dim 1024 --backbone resnet50 --label_ratio 15 --pretrained --confidence 0.98
+python src/main.py  --root ./Aircraft --batch_size 24 --logdir vis/ --gpu_id 2 --queue_size 32 --projector_dim 1024 --backbone resnet50 --label_ratio 15 --pretrained --confidence 0.98
 python src/main.py  --root ./cifar100 --batch_size 20 --logdir vis/ --gpu_id 3 --queue_size 32 --backbone efficientnet-b2 --num_labeled 10000 --expand_label --pretrained --projector_dim 1024
 python src/main.py --root ./CUB200 --batch_size 24 --logdir vis/ --gpu_id 0 --queue_size 32 --projector_dim 1024 --backbone resnet50 --label_ratio 15 --pretrained --pretrained_path ./ckp-cub200/checkpoint_0099.pth.tar
-python src/main.py --root ./StanfordCars --batch_size 16 --logdir vis/ --gpu_id 2 --queue_size 32 --projector_dim 1024 --backbone resnet50  --label_ratio 15 --pretrained --pretrained_path ./ckp-car/checkpoint_0099.pth.tar
-python src/main.py --root ./Aircraft --batch_size 16 --logdir vis/ --gpu_id 2 --queue_size 32 --projector_dim 1024 --backbone resnet50  --label_ratio 15 --pretrained --pretrained_path ./ckp-air/checkpoint_0099.pth.tar
+python src/main.py --root ./StanfordCars --batch_size 24 --logdir vis/ --gpu_id 2 --queue_size 32 --projector_dim 1024 --backbone resnet50  --label_ratio 15 --pretrained --pretrained_path ./ckp-car/checkpoint_0099.pth.tar
+python src/main.py --root ./Aircraft --batch_size 24 --logdir vis/ --gpu_id 2 --queue_size 32 --projector_dim 1024 --backbone resnet50  --label_ratio 15 --pretrained --pretrained_path ./ckp-air/checkpoint_0099.pth.tar
 
 
 ```
@@ -117,4 +117,4 @@ Answer: MOCOv2 maybe not necessary, we can use resnet50(pretrained=True) to repl
 | Ours_no_circle|71.62|73.32|75.90|75.31|76.02|75.44|75.45|
 | Ours|77.63|78.09|78.72|78.31|78.93|78.32|79.21|
 
-Answer: Yes
+Answer: Yes, the internal and external double loop play a vital role in improving performance.
