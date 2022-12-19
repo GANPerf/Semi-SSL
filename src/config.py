@@ -22,8 +22,9 @@ def read_config():
     parser.add_argument('--test_interval', type=float, default=3000)
     parser.add_argument("--pretrained", action="store_true", help="use the pre-trained model")
     parser.add_argument("--pretrained_path", type=str, default='~/.torch/models/moco_v2_800ep_pretrain.pth.tar')
+    parser.add_argument("--pseudo_acc", type=str, default='False', help='calculate the pseudo Label Acc')
     parser.add_argument('--num_of_cluster', type=float, default=200)
-    parser.add_argument('--confidence', type=float, default=0.98)
+    parser.add_argument('--confidence', type=float, default=0.95)
     parser.add_argument("--pretrained_cpt_path", type=str, default='~/.torch/models/moco_v2_800ep_pretrain.pth.tar',help='the pretrained path is for loading the model checkpoint of step2')
     ## Only for Cifar100
     parser.add_argument("--expand_label", action="store_true", help="expand label to fit eval steps")
