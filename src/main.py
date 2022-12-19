@@ -432,21 +432,22 @@ def train(args, model, model_ce, model_moco, classifier, classifier_ce, dataset_
                                                                              predict_unlabeled)  # predict_unlabeled/pseudo_label
             PGC_loss_unlabeled = criterions['KLDiv'](PGC_logit_unlabeled, PGC_label_unlabeled)
 
-            '''
-            #compute Pseudo label acc
-            if start:
-                all_labels = label_in_unlabeldata.data.float()
-                all_outputs = predict_unlabeled.data.float()
-                start = False
-            else:
-                all_labels = torch.cat((all_labels, label_in_unlabeldata.data.float()),0)
-                all_outputs = torch.cat((all_outputs, predict_unlabeled.data.float()),0)
 
-            if iter_num % len_unlabeled == 0:
-                pseudo_accuracy = torch.sum(all_outputs == all_labels).item() / float(all_labels.size()[0])
-                print("iter_num:{}; Pseudo Label Acc{}".format(iter_num, pseudo_accuracy))
-                start = True
-            '''
+            #compute Pseudo label acc
+            if args.pseudo_acc:
+                if start:
+                    all_labels = label_in_unlabeldata.data.float()
+                    all_outputs = predict_unlabeled.data.float()
+                    start = False
+                else:
+                    all_labels = torch.cat((all_labels, label_in_unlabeldata.data.float()),0)
+                    all_outputs = torch.cat((all_outputs, predict_unlabeled.data.float()),0)
+
+                if iter_num % len_unlabeled == 0:
+                    pseudo_accuracy = torch.sum(all_outputs == all_labels).item() / float(all_labels.size()[0])
+                    print("iter_num:{}; Pseudo Label Acc{}".format(iter_num, pseudo_accuracy))
+                    start = True
+
 
             # prob_unlabeled_psuedo = torch.softmax(logit_unlabeled_psuedo.detach(), dim=-1)
             # confidence_unlabeled_psuedo, predict_unlabeled_psuedo = torch.max(prob_unlabeled_psuedo, dim=-1)
@@ -563,12 +564,12 @@ def main():
     scheduler_ce = torch.optim.lr_scheduler.MultiStepLR(optimizer_ce, milestones, gamma=0.1)
 
     ## Define Optimizer for SSL
-    optimizer = optim.SGD([
-        {'params': model.parameters()},
-        {'params': classifier.parameters(), 'lr': args.lr * args.lr_ratio},
-    ], lr=args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True)
-    milestones = [6000, 12000, 18000, 24000]
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones, gamma=0.1)
+    #optimizer = optim.SGD([
+        #{'params': model.parameters()},
+        #{'params': classifier.parameters(), 'lr': args.lr * args.lr_ratio},
+    #], lr=args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True)
+    #milestones = [6000, 12000, 18000, 24000]
+    #scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones, gamma=0.1)
 
     # Train model
     train(args, model, model_ce, model_moco, classifier, classifier_ce, dataset_loaders, optimizer_ce,
