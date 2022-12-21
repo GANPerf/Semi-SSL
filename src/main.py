@@ -355,10 +355,8 @@ def train(args, model, model_ce, model_moco, classifier, classifier_ce, dataset_
 
     best_acc = 0.0
     best_model = None
-    step2(criterions, dataset_loaders, device, iter_labeled, len_labeled, model_moco, optimizer_moco,
-          scheduler_moco)
-    step4(classifier_ce, criterions, dataset_loaders, device, model_ce, optimizer_ce,
-          scheduler_ce)
+    step2(criterions, dataset_loaders, device, iter_labeled, len_labeled, model_moco, optimizer_moco, scheduler_moco)
+    step4(classifier_ce, criterions, dataset_loaders, device, model_ce, optimizer_ce, scheduler_ce)
     # step3: For Unlabeled Data, Divide U data into N clusters
     # Using numpy because our gpu memory is limited T_T
 
@@ -434,7 +432,8 @@ def train(args, model, model_ce, model_moco, classifier, classifier_ce, dataset_
 
 
             #compute Pseudo label acc
-            if args.pseudo_acc:
+            pseudo_acc = False
+            if pseudo_acc:
                 if start:
                     all_labels = label_in_unlabeldata.data.float()
                     all_outputs = predict_unlabeled.data.float()
