@@ -1,3 +1,4 @@
+import math
 import os
 
 import numpy as np
@@ -5,11 +6,17 @@ import pandas as pd
 from torchvision.datasets.folder import default_loader
 from torchvision.datasets.utils import download_url
 from torch.utils.data import Dataset
+from torchvision import transforms
 
+from data.randaugment import RandAugmentMC
 
+cub200_mean = (0.5071, 0.4867, 0.4408)
+cub200_std = (0.2675, 0.2565, 0.2761)
+img_size=224
+crop_size=224
 class Cub2011(Dataset):
     base_folder = 'CUB_200_2011/images'
-    url = 'https://data.caltech.edu/tindfiles/serve/1239ea37-e132-42ee-8c09-c383bb54e7ff/' #''http://www.vision.caltech.edu/visipedia-data/CUB-200-2011/CUB_200_2011.tgz'
+    url ='https://data.caltech.edu/records/65de6-vp158/files/CUB_200_2011.tgz?download=1'# 'https://data.caltech.edu/tindfiles/serve/1239ea37-e132-42ee-8c09-c383bb54e7ff/' #''http://www.vision.caltech.edu/visipedia-data/CUB-200-2011/CUB_200_2011.tgz'
 
 
     filename = 'CUB_200_2011.tgz'
@@ -46,16 +53,17 @@ class Cub2011(Dataset):
 
         if self.train:
             self.data = self.data[self.data.is_training_img == 1]
-            self.data=self.data[self.indexs]
-            self.targets = self.data.target.tolist()
-            self.targets=[x-1 for x in self.targets ]
-            self.targets = np.array(self.targets)[self.indexs]
+            if len(self.indexs) >0:
+                self.data=self.data.iloc[self.indexs]
+                self.data.target = np.array(self.data.target.iloc[self.indexs])
         else:
             self.data = self.data[self.data.is_training_img == 0]
-            self.data=self.data[self.indexs]
-            self.targets = self.data.target.tolist()
-            self.targets=[x-1 for x in self.targets ]
-            self.targets = np.array(self.targets)[self.indexs]
+            if len(self.indexs) >0:
+                self.data=self.data[self.indexs]
+                self.data.target = np.array(self.data.target[self.indexs])
+        self.targets = self.data.target.tolist()
+        self.targets=[x-1 for x in self.targets ]
+
 
     def _check_integrity(self):
         try:
@@ -95,3 +103,83 @@ class Cub2011(Dataset):
             img = self.transform(img)
 
         return img, target
+
+
+def x_u_split(args, labels):
+    label_per_class = args.num_labeled // args.num_classes
+    labels = np.array(labels)
+    labeled_idx = []
+    # unlabeled data: all data (https://github.com/kekmodel/FixMatch-pytorch/issues/10)
+    unlabeled_idx = np.array(range(len(labels)))
+    for i in range(args.num_classes):
+        idx = np.where(labels == i)[0]
+        idx = np.random.choice(idx, label_per_class, False)
+        labeled_idx.extend(idx)
+    labeled_idx = np.array(labeled_idx)
+    #assert len(labeled_idx) == args.num_labeled
+
+    if args.expand_labels or args.num_labeled < args.batch_size:
+        num_expand_x = math.ceil(
+            args.batch_size * args.eval_step / args.num_labeled)
+        labeled_idx = np.hstack([labeled_idx for _ in range(num_expand_x)])
+    np.random.shuffle(labeled_idx)
+    return labeled_idx, unlabeled_idx
+
+
+class TransformFixMatch(object):
+    def __init__(self, mean, std):
+        self.weak = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(size=img_size,
+                                  padding=int(img_size*0.125),
+                                  padding_mode='reflect')])
+        self.strong = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(size=img_size,
+                                  padding=int(img_size*0.125),
+                                  padding_mode='reflect'),
+            RandAugmentMC(n=2, m=10)])
+        self.normalize = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=mean, std=std)])
+
+    def __call__(self, x):
+        weak = self.weak(x)
+        strong = self.strong(x)
+        return self.normalize(weak), self.normalize(strong)
+def get_cub200(args, root):
+
+    transform_labeled = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(size=crop_size,
+                              padding=int(crop_size*0.125),
+                              padding_mode='reflect'),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=cub200_mean, std=cub200_std)])
+
+    transform_val = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=cub200_mean, std=cub200_std)])
+
+    base_dataset = Cub2011(args.root, indexs=[], train=True, transform=None, loader=default_loader, download=False)
+
+    args.num_labeled=len(base_dataset.targets)
+    train_labeled_idxs, train_unlabeled_idxs = x_u_split(
+        args, base_dataset.targets)
+
+    train_labeled_dataset = Cub2011(
+        args.root, train_labeled_idxs.tolist(), train=True,
+        transform=transform_labeled,download=False)
+
+    train_unlabeled_dataset = Cub2011(
+        args.root, train_unlabeled_idxs.tolist(), train=True,
+        transform=TransformFixMatch(mean=cub200_mean, std=cub200_std),download=False)
+
+    test_dataset = Cub2011(
+        args.root, [],train=False, transform=transform_val, download=False)  # by default, the index is none to retrieve test set.
+
+    return train_labeled_dataset, train_unlabeled_dataset, test_dataset
+
+
+DATASET_GETTERS = {'cub200_2011': get_cub200,
+                   }

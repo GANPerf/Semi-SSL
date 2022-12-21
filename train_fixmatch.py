@@ -68,7 +68,7 @@ def main():
     parser = argparse.ArgumentParser(description='PyTorch FixMatch Training')
     parser.add_argument('--gpu-id', default='0', type=int,
                         help='id(s) for CUDA_VISIBLE_DEVICES')
-    parser.add_argument('--num-workers', type=int, default=4,
+    parser.add_argument('--num-workers', type=int, default=1,
                         help='number of workers')
     parser.add_argument('--dataset', default='cub200', type=str,
                         choices=['cifar10', 'cifar100','cub200'],
@@ -126,6 +126,7 @@ def main():
     parser.add_argument('--root', type=str, default='/data/huawei/Semi-SSL/CUB200',help='root path of dataset')
     parser.add_argument('--class_num', type=int, default=200)
     parser.add_argument('--label_ratio', type=int, default=15)
+    parser.add_argument('--fixmatch', default=0, type=int, help='1= run fixmatch process')
 
     args = parser.parse_args()
     global best_acc
@@ -203,6 +204,7 @@ def main():
 
     elif args.dataset == 'cub200':
         print("class_num: ", args.class_num)
+
         args.num_classes = 200
         if args.arch == 'wideresnet':
             args.model_depth = 28
@@ -214,8 +216,8 @@ def main():
 
     if args.local_rank not in [-1, 0]:
         torch.distributed.barrier()
-    dls=load_data(args)
-    labeled_dataset, unlabeled_dataset, test_dataset = dls['train'],dls['unlabeled_train'],dls['test0']#DATASET_GETTERS[args.dataset](args, './data')
+    labeled_dataset, unlabeled_dataset, test_dataset =load_data(args)
+    #labeled_dataset, unlabeled_dataset, test_dataset = dls['train'],dls['unlabeled_train'],dls['test0']#DATASET_GETTERS[args.dataset](args, './data')
 
     if args.local_rank == 0:
         torch.distributed.barrier()

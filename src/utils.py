@@ -3,7 +3,7 @@ from models.efficientnet import EfficientNetFc
 
 from data.tranforms import TransformTrain
 from data.tranforms import TransformTest
-import data
+from data.cub200_2011 import get_cub200
 from data.cifar100 import get_cifar100
 from torch.utils.data import DataLoader, RandomSampler
 import os
@@ -40,6 +40,10 @@ def load_data(args):
         dataset_loaders = {"train": labeled_trainloader,
                            "unlabeled_train": unlabeled_trainloader,
                            "test": test_loader}
+
+    elif args.fixmatch==True:
+        labeled_dataset, unlabeled_dataset, test_dataset = get_cub200(args, args.root)
+        return labeled_dataset, unlabeled_dataset, test_dataset
 
     else:
         transform_train = TransformTrain()
