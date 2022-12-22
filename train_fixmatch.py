@@ -342,7 +342,7 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
                          disable=args.local_rank not in [-1, 0])
         for batch_idx in range(args.eval_step):
             try:
-                inputs_x, targets_x = labeled_iter.next()
+                inputs_x, targets_x = next(labeled_iter)
             except:
                 if args.world_size > 1:
                     labeled_epoch += 1
@@ -351,7 +351,7 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
                 inputs_x, targets_x = labeled_iter.next()
 
             try:
-                (inputs_u_w, inputs_u_s), _ = unlabeled_iter.next()
+                (inputs_u_w, inputs_u_s), _ = next(unlabeled_iter)
             except:
                 if args.world_size > 1:
                     unlabeled_epoch += 1

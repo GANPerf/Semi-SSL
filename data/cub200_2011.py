@@ -76,12 +76,14 @@ class Cub2011(Dataset):
             self.data = self.data[self.data.is_training_img == 1]
             if len(self.indexs) >0:
                 self.data=self.data.iloc[self.indexs]
-                self.data.target = np.array(self.data.target.iloc[self.indexs])
+                # self.data.target = np.array(self.data.target.iloc[self.indexs])
+                # self.data=data
         else:
             self.data = self.data[self.data.is_training_img == 0]
             if len(self.indexs) >0:
                 self.data=self.data[self.indexs]
-                self.data.target = np.array(self.data.target[self.indexs])
+                # self.data.target = np.array(self.data.target[self.indexs])
+                # self.data=data
         self.targets = self.data.target.tolist()
         self.targets=[x-1 for x in self.targets ]
 
