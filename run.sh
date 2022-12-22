@@ -20,3 +20,7 @@ python src/main.py  --root ./cifar100 --batch_size 20 --logdir vis/ --gpu_id 3 -
 
 
 python src/main.py  --root ./cifar100 --batch_size 20 --logdir vis/ --gpu_id 0 --queue_size 32 --backbone resnet50 --num_labeled 400 --expand_label --pretrained --projector_dim 1024 --pretrained_path ./ckp-cifar100/checkpoint_0099.pth.tar
+
+
+fixmatch
+--dataset cub200 --fixmatch 1 --download 0 --root ./CUB200-2011/ --num-labeled 4000 --arch wideresnet --batch-size 1 --lr 0.03 --expand-labels --seed 5 --out results/cub200@4000.5

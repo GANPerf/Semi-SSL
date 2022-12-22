@@ -16,7 +16,7 @@ from torch.utils.data.distributed import DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from src.utils import load_data
-#from dataset.cifar import DATASET_GETTERS
+from data.cifar import DATASET_GETTERS
 from utils import AverageMeter, accuracy
 
 logger = logging.getLogger(__name__)
@@ -217,8 +217,15 @@ def main():
 
     if args.local_rank not in [-1, 0]:
         torch.distributed.barrier()
-    labeled_dataset, unlabeled_dataset, test_dataset =load_data(args)
-    #labeled_dataset, unlabeled_dataset, test_dataset = dls['train'],dls['unlabeled_train'],dls['test0']#DATASET_GETTERS[args.dataset](args, './data')
+
+
+    if args.dataset == 'cifar100':
+        labeled_dataset, unlabeled_dataset, test_dataset = DATASET_GETTERS[args.dataset](args, './cifar100')
+    elif args.dataset == 'cifar10':
+        labeled_dataset, unlabeled_dataset, test_dataset = DATASET_GETTERS[args.dataset](args, './cifar10')
+    else:
+        labeled_dataset, unlabeled_dataset, test_dataset =load_data(args)
+        # labeled_dataset, unlabeled_dataset, test_dataset = dls['train'],dls['unlabeled_train'],dls['test0']#DATASET_GETTERS[args.dataset](args, './data')
 
     if args.local_rank == 0:
         torch.distributed.barrier()
@@ -342,7 +349,7 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
                          disable=args.local_rank not in [-1, 0])
         for batch_idx in range(args.eval_step):
             try:
-                inputs_x, targets_x = next(labeled_iter)
+                inputs_x, targets_x = labeled_iter.next() #next(labeled_iter)
             except:
                 if args.world_size > 1:
                     labeled_epoch += 1
