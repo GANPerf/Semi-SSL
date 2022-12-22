@@ -161,7 +161,7 @@ def get_cub200(args, root):
         transforms.ToTensor(),
         transforms.Normalize(mean=cub200_mean, std=cub200_std)])
 
-    base_dataset = Cub2011(args.root, indexs=[], train=True, transform=None, loader=default_loader, download=False)
+    base_dataset = Cub2011(args.root, indexs=[], train=True, transform=None, loader=default_loader, download=args.download)
 
     args.num_labeled=len(base_dataset.targets)
     train_labeled_idxs, train_unlabeled_idxs = x_u_split(
@@ -173,10 +173,10 @@ def get_cub200(args, root):
 
     train_unlabeled_dataset = Cub2011(
         args.root, train_unlabeled_idxs.tolist(), train=True,
-        transform=TransformFixMatch(mean=cub200_mean, std=cub200_std),download=False)
+        transform=TransformFixMatch(mean=cub200_mean, std=cub200_std),download=args.download)
 
     test_dataset = Cub2011(
-        args.root, [],train=False, transform=transform_val, download=False)  # by default, the index is none to retrieve test set.
+        args.root, [],train=False, transform=transform_val, download=args.download)  # by default, the index is none to retrieve test set.
 
     return train_labeled_dataset, train_unlabeled_dataset, test_dataset
 

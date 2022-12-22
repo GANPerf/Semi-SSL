@@ -127,6 +127,7 @@ def main():
     parser.add_argument('--class_num', type=int, default=200)
     parser.add_argument('--label_ratio', type=int, default=15)
     parser.add_argument('--fixmatch', default=0, type=int, help='1= run fixmatch process')
+    parser.add_argument('--download', default=0, type=int, help='1= download ')
 
     args = parser.parse_args()
     global best_acc
