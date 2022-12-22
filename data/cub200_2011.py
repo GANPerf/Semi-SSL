@@ -10,10 +10,31 @@ from torchvision import transforms
 
 from data.randaugment import RandAugmentMC
 
-cub200_mean = (0.5071, 0.4867, 0.4408)
-cub200_std = (0.2675, 0.2565, 0.2761)
+cub200_mean =(0.485, 0.456, 0.406)
+cub200_std =(0.229, 0.224, 0.225)
+
 img_size=224
 crop_size=224
+resize_size = 256
+
+class ResizeImage(object):
+    """Resize the input PIL Image to the given size.
+    Args:
+        size (sequence or int): Desired output size. If size is a sequence like
+            (h, w), output size will be matched to this. If size is an int,
+            output size will be (size, size)
+    """
+    def __init__(self, size):
+        if isinstance(size, int):
+            self.size = (int(size), int(size))
+        else:
+            self.size = size
+
+    def __call__(self, img):
+        th, tw = self.size
+        return img.resize((th, tw))
+
+
 class Cub2011(Dataset):
     base_folder = 'CUB_200_2011/images'
     url ='https://data.caltech.edu/records/65de6-vp158/files/CUB_200_2011.tgz?download=1'# 'https://data.caltech.edu/tindfiles/serve/1239ea37-e132-42ee-8c09-c383bb54e7ff/' #''http://www.vision.caltech.edu/visipedia-data/CUB-200-2011/CUB_200_2011.tgz'
@@ -129,11 +150,13 @@ def x_u_split(args, labels):
 class TransformFixMatch(object):
     def __init__(self, mean, std):
         self.weak = transforms.Compose([
+            ResizeImage(resize_size),
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(size=img_size,
                                   padding=int(img_size*0.125),
                                   padding_mode='reflect')])
         self.strong = transforms.Compose([
+            ResizeImage(resize_size),
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(size=img_size,
                                   padding=int(img_size*0.125),
@@ -150,6 +173,7 @@ class TransformFixMatch(object):
 def get_cub200(args, root):
 
     transform_labeled = transforms.Compose([
+        ResizeImage(resize_size),
         transforms.RandomHorizontalFlip(),
         transforms.RandomCrop(size=crop_size,
                               padding=int(crop_size*0.125),
