@@ -221,8 +221,6 @@ def main():
 
     if args.dataset == 'cifar100':
         labeled_dataset, unlabeled_dataset, test_dataset = DATASET_GETTERS[args.dataset](args, './cifar100')
-    elif args.dataset == 'cifar10':
-        labeled_dataset, unlabeled_dataset, test_dataset = DATASET_GETTERS[args.dataset](args, './cifar10')
     else:
         labeled_dataset, unlabeled_dataset, test_dataset =load_data(args)
         # labeled_dataset, unlabeled_dataset, test_dataset = dls['train'],dls['unlabeled_train'],dls['test0']#DATASET_GETTERS[args.dataset](args, './data')
