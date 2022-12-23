@@ -23,6 +23,6 @@ python src/main.py  --root ./cifar100 --batch_size 20 --logdir vis/ --gpu_id 0 -
 
 
 fixmatch
---dataset cub200 --fixmatch 1 --download 0 --root ./CUB200-2011/ --num-labeled 4000 --arch wideresnet --batch-size 1 --lr 0.03 --expand-labels --seed 5 --out results/cub200@4000.5
+--dataset cub200 --fixmatch 1 --download 0 --root ./CUB200-2011/ --num-labeled 3000/1800/900 --arch wideresnet --batch-size 64 --lr 0.03 --expand-labels --seed 5 --out results/cub200@4000.5
 
 --dataset cifar10 --num-labeled 4000 --arch wideresnet --batch-size 64 --lr 0.03 --expand-labels --seed 5 --out results/cifar10@4000.5

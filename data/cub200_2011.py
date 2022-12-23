@@ -184,6 +184,7 @@ def get_cub200(args, root):
         transforms.Normalize(mean=cub200_mean, std=cub200_std)])
 
     transform_val = transforms.Compose([
+        ResizeImage(224),
         transforms.ToTensor(),
         transforms.Normalize(mean=cub200_mean, std=cub200_std)])
 
