@@ -190,7 +190,7 @@ def get_cub200(args, root):
 
     base_dataset = Cub2011(args.root, indexs=[], train=True, transform=None, loader=default_loader, download=args.download)
 
-    args.num_labeled=len(base_dataset.targets)
+    #args.num_labeled=len(base_dataset.targets)
     train_labeled_idxs, train_unlabeled_idxs = x_u_split(
         args, base_dataset.targets)
 
