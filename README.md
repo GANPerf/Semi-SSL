@@ -121,7 +121,7 @@ Answer: Yes, the internal and external double loop play a vital role in improvin
 
 
 ## Fixmatch(reproduction)| classification accuracy (%) of SSL on CUB200 /StandfordCar/AirCrafts
-| Dataset/radio |15%|30%|50% |
+| Dataset/ratio |15%|30%|50% |
 | -- | -- | -- | -- | 
 | CUB200 | | | 57%|
 | StandfordCar | | | |
