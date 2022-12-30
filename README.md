@@ -120,8 +120,9 @@ Answer: MOCOv2 maybe not necessary, we can use resnet50(pretrained=True) to repl
 Answer: Yes, the internal and external double loop play a vital role in improving performance.
 
 ## Fixmatch(reproduction)
-| Dataset | Label Ratio  | no loss | CE loss | CE + CL loss | CL loss |
-| -- | -- | -- | -- | -- | -- |
-| CUB-200-2011 | 15| 20.72 | 36.28 | 44.52 | 48.24 |
-| StanfordCars | 15| 10.66 | 41.49 | 52.75 | 54.68 |
-| Aircraft | 15| 24.14 | 41.27 | 47.62 | 50.46 |
+## classification accuracy (%) of SSL on CUB200 
+| Dataset/radio |15%|30%|50% |
+| -- | -- | -- | -- | 
+| CUB200 | 57%| | |
+| StandfordCar | | | |
+| AirCrafts | | | |
