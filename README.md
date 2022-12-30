@@ -118,3 +118,10 @@ Answer: MOCOv2 maybe not necessary, we can use resnet50(pretrained=True) to repl
 | Ours|77.63|78.09|78.72|78.31|78.93|78.32|79.21|
 
 Answer: Yes, the internal and external double loop play a vital role in improving performance.
+
+## Fixmatch(reproduction)
+| Dataset | Label Ratio  | no loss | CE loss | CE + CL loss | CL loss |
+| -- | -- | -- | -- | -- | -- |
+| CUB-200-2011 | 15| 20.72 | 36.28 | 44.52 | 48.24 |
+| StanfordCars | 15| 10.66 | 41.49 | 52.75 | 54.68 |
+| Aircraft | 15| 24.14 | 41.27 | 47.62 | 50.46 |
