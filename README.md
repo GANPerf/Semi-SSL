@@ -124,5 +124,5 @@ Answer: Yes, the internal and external double loop play a vital role in improvin
 | Dataset/ratio of dataset usage (labeled) |15%|30%|50 |
 | -- | -- | -- | -- | 
 | CUB200 | 40.97%,29.91%|63.24%,48.72% | 70%,52%|
-| StandfordCar | | | |
+| StandfordCar | | 70%| |
 | AirCrafts | | | |
