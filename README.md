@@ -8,6 +8,7 @@
 * tensorboardX
 * numpy
 * argparse
+* apex git clone https://github.com/NVIDIA/apex
 
 
 
