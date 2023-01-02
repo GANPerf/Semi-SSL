@@ -8,8 +8,10 @@
 * tensorboardX
 * numpy
 * argparse
+* apex git clone https://github.com/NVIDIA/apex
 
-
+## Hardware minimum requirements
+when batch size =64 on cub/stanfordcars/aircrafts, it requires minumum 50G GPU memory
 
 
 ## Quick Start
@@ -118,3 +120,14 @@ Answer: MOCOv2 maybe not necessary, we can use resnet50(pretrained=True) to repl
 | Ours|77.63|78.09|78.72|78.31|78.93|78.32|79.21|
 
 Answer: Yes, the internal and external double loop play a vital role in improving performance.
+
+
+## Fixmatch(reproduction+ backbone=Resnet50)| classification accuracy (%) of SSL on CUB200 /StandfordCar/AirCrafts (Best accuracy/Mean accuracy)
+python train_fixmatch.py --dataset stanfordcars --amp --fixmatch 1 --download 0 --root /root/Projects/Semi-SSL/StanfordCars/StanfordCars  --arch resnet50 --batch-size 64 --lr 0.03 --seed 5 --out results/stanforcars@1500.5 --label_ratio .15
+
+python train_fixmatch.py  --dataset aircrafts --amp --fixmatch 1 --download 0 --root /root/Projects/Semi-SSL/Aircraft/Aircraft  --arch resnet50 --batch-size 64 --lr 0.03 --seed 5 --out results/aircrafts@1500.5 --label_ratio .15
+| Dataset/ratio of dataset usage (labeled) |15%|30%|50 |
+| -- | -- | -- | -- | 
+| CUB200 | 40.97%,29.91%|63.24%,48.72% | 70%,52%|
+| StandfordCar |65.97%,49.44% | 81.92%| |
+| AirCrafts | 55.54%| 66.85%| |
