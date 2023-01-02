@@ -128,4 +128,4 @@ python train_fixmatch.py  --dataset aircrafts --amp --fixmatch 1 --download 0 --
 | -- | -- | -- | -- | 
 | CUB200 | 40.97%,29.91%|63.24%,48.72% | 70%,52%|
 | StandfordCar |65.97%,49.44% | 81.4%| |
-| AirCrafts | | | |
+| AirCrafts | 41%| 55%| |
