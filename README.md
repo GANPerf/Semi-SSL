@@ -10,7 +10,8 @@
 * argparse
 * apex git clone https://github.com/NVIDIA/apex
 
-
+## Hardware minimum requirements
+when batch size =64 on cub/stanfordcars/aircrafts, it requires minumum 50G GPU memory
 
 
 ## Quick Start
