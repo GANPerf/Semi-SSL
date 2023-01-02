@@ -91,7 +91,8 @@ class Cub2011(Dataset):
     def _check_integrity(self):
         try:
             self._load_metadata()
-        except Exception:
+        except Exception as ex:
+            print(ex)
             return False
 
         for index, row in self.data.iterrows():
@@ -172,7 +173,7 @@ class TransformFixMatch(object):
         weak = self.weak(x)
         strong = self.strong(x)
         return self.normalize(weak), self.normalize(strong)
-def get_cub200(args, root):
+def get_cub200(args):
 
     transform_labeled = transforms.Compose([
         ResizeImage(resize_size),

@@ -16,12 +16,13 @@ from torch.utils.data.distributed import DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from src.utils import load_data
-from data.cifar import DATASET_GETTERS
+#from data.cifar import DATASET_GETTERS
 from utils import AverageMeter, accuracy
+
 
 logger = logging.getLogger(__name__)
 best_acc = 0
-
+dict_dataset_classes={'cub200':200,'aircrafts':100,'stanfordcars':196}
 
 def save_checkpoint(state, is_best, checkpoint, filename='checkpoint.pth.tar'):
     filepath = os.path.join(checkpoint, filename)
@@ -68,10 +69,10 @@ def main():
     parser = argparse.ArgumentParser(description='PyTorch FixMatch Training')
     parser.add_argument('--gpu-id', default='0', type=int,
                         help='id(s) for CUDA_VISIBLE_DEVICES')
-    parser.add_argument('--num-workers', type=int, default=1,
+    parser.add_argument('--num-workers', type=int, default=4,
                         help='number of workers')
     parser.add_argument('--dataset', default='cub200', type=str,
-                        choices=['cifar10', 'cifar100','cub200'],
+                        choices=['cifar10', 'cifar100','cub200','stanfordcars','aircrafts'],
                         help='dataset name')
     parser.add_argument('--num-labeled', type=int, default=4000,
                         help='number of labeled data')
@@ -125,7 +126,7 @@ def main():
                         help="don't use progress bar")
     parser.add_argument('--root', type=str, default='/data/huawei/Semi-SSL/CUB200',help='root path of dataset')
     parser.add_argument('--class_num', type=int, default=200)
-    parser.add_argument('--label_ratio', type=int, default=15)
+    parser.add_argument('--label_ratio', type=float, default=15,help='ratio [=.15,.3,.5]')
     parser.add_argument('--fixmatch', default=0, type=int, help='1= run fixmatch process')
     parser.add_argument('--download', default=0, type=int, help='1= download ')
 
@@ -209,10 +210,19 @@ def main():
             args.model_depth = 29
             args.model_width = 64
 
-    elif args.dataset == 'cub200':
-        print("class_num: ", args.class_num)
-
-        args.num_classes = 200
+    # elif args.dataset == 'cub200':
+    #     print("class_num: ", args.class_num)
+    #
+    #     args.num_classes = 200
+    #     if args.arch == 'wideresnet':
+    #         args.model_depth = 28
+    #         args.model_width = 8
+    #     elif args.arch == 'resnext':
+    #         args.model_cardinality = 8
+    #         args.model_depth = 29
+    #         args.model_width = 64
+    else:
+        args.num_classes=dict_dataset_classes[args.dataset]
         if args.arch == 'wideresnet':
             args.model_depth = 28
             args.model_width = 8
@@ -312,6 +322,7 @@ def main():
 
     logger.info("***** Running training *****")
     logger.info(f"  Task = {args.dataset}@{args.num_labeled}")
+    logger.info(f"  Task = {args.dataset}@{args.label_ratio}")
     logger.info(f"  Num Epochs = {args.epochs}")
     logger.info(f"  Batch size per GPU = {args.batch_size}")
     logger.info(
