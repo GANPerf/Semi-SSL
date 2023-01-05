@@ -18,7 +18,11 @@ from tqdm import tqdm
 from src.utils import load_data
 #from data.cifar import DATASET_GETTERS
 from utils import AverageMeter, accuracy
+from models.method import MOCOTuning
+from models.classifier import Classifier
 
+from src.utils import load_network
+import torch.nn as nn
 
 logger = logging.getLogger(__name__)
 best_acc = 0
@@ -129,6 +133,8 @@ def main():
     parser.add_argument('--label_ratio', type=float, default=15,help='ratio [=.15,.3,.5]')
     parser.add_argument('--fixmatch', default=0, type=int, help='1= run fixmatch process')
     parser.add_argument('--download', default=0, type=int, help='1= download ')
+
+
 
     args = parser.parse_args()
     global best_acc
@@ -329,9 +335,75 @@ def main():
         f"  Total train batch size = {args.batch_size*args.world_size}")
     logger.info(f"  Total optimization steps = {args.total_steps}")
 
+    # Step1: Initialize model, using pretrained MOCO v2 in pretrained_path or resnet50
+    network, feature_dim = load_network('resnet50')  # 'MOCOv2'
+    model_step1 = MOCOTuning(network=network, backbone='resnet50', queue_size=32,  # 'MOCOv2'
+                            projector_dim=1024, feature_dim=feature_dim,
+                            class_num=args.class_num, momentum=0.999, pretrained=True,
+                            pretrained_path=None).to(args.device)
+
+    classifier = Classifier(feature_dim, args.class_num).to(args.device)
+
+    ## Define Optimizer for optimize step1's  resnet50
+    optimizer_step1 = optim.SGD([
+        {'params': model_step1.parameters()},
+        {'params': classifier.parameters(), 'lr': 0.001 * 10},
+    ], lr=0.001, momentum=0.9, weight_decay=0.0001, nesterov=True)
+    milestones = [6000, 12000, 18000, 24000]
+    scheduler_step1 = torch.optim.lr_scheduler.MultiStepLR(optimizer_step1, milestones, gamma=0.1)
+
+    #fixmatch step1
+    train_step1(args, model_step1, classifier, labeled_trainloader, optimizer_step1, scheduler_step1)
+
+    #fixmatch step2 for henry
+
+    #fixmatch step3
     model.zero_grad()
     train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
           model, optimizer, ema_model, scheduler)
+
+def train_step1(args, model_step1, classifier, labeled_trainloader, optimizer_step1, scheduler_step1):
+
+    print("fixmatch step1 starts")
+    criterions = {"CrossEntropy": nn.CrossEntropyLoss(), "KLDiv": nn.KLDivLoss(reduction='batchmean')}
+
+    labeled_iter = iter(labeled_trainloader)
+    len_labeled = len(labeled_trainloader)
+
+    for iter_num in range(1, 12000 + 1):  # args.max_iter + 1
+        model_step1.train(True)
+        classifier.train(True)
+        optimizer_step1.zero_grad()
+
+        if iter_num % len_labeled == 0:
+            labeled_iter = iter(labeled_trainloader)
+
+
+        data_labeled = labeled_iter.next()
+        inputs_x = data_labeled[0].to(args.device)
+        targets_x = data_labeled[1].to(args.device)
+
+        ## For Labeled Data
+        PGC_logit_labeled, PGC_label_labeled, feat_labeled = model_step1(inputs_x, inputs_x, targets_x)
+
+        PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled,
+                                                       PGC_label_labeled)  # Contrastive loss for instances with the same labels
+
+        out = classifier(feat_labeled)
+        classifier_loss = criterions['CrossEntropy'](out, targets_x)
+
+        # CL: using (pos1+pos2)/(pos1+pos2+neg) to fine tune
+        total_loss = classifier_loss + PGC_loss_labeled
+        total_loss.backward()
+        optimizer_step1.step()
+        scheduler_step1.step()
+
+        ## Calculate the training accuracy of current iteration
+        if iter_num % 100 == 0:
+            _, predict = torch.max(out, 1)
+            hit_num = (predict == targets_x).sum().item()
+            sample_num = predict.size(0)
+            print("iter_num: {0:2d}; current acc: {1:8.2f}".format(iter_num, hit_num / float(sample_num)))
 
 
 def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
@@ -396,7 +468,7 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
 
             pseudo_label = torch.softmax(logits_u_w.detach()/args.T, dim=-1)
             max_probs, targets_u = torch.max(pseudo_label, dim=-1)
-            mask = max_probs.ge(args.threshold).float()
+            mask = max_probs.ge(args.threshold).float()   #greater and equal（大于等于）
 
             Lu = (F.cross_entropy(logits_u_s, targets_u,
                                   reduction='none') * mask).mean()
@@ -528,3 +600,5 @@ def test(args, test_loader, model, epoch):
 
 if __name__ == '__main__':
     main()
+
+
