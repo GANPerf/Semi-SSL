@@ -9,6 +9,8 @@
 * numpy
 * argparse
 * apex git clone https://github.com/NVIDIA/apex
+* cd apex
+* python setup.py install
 
 ## Hardware minimum requirements
 when batch size =64 on cub/stanfordcars/aircrafts, it requires minumum 50G GPU memory
