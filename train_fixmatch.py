@@ -316,11 +316,6 @@ def main():
         optimizer.load_state_dict(checkpoint['optimizer'])
         scheduler.load_state_dict(checkpoint['scheduler'])
 
-    if args.amp:
-        from apex import amp
-        model, optimizer = amp.initialize(
-            model, optimizer, opt_level=args.opt_level)
-
     if args.local_rank != -1:
         model = torch.nn.parallel.DistributedDataParallel(
             model, device_ids=[args.local_rank],
@@ -358,13 +353,22 @@ def main():
     #fixmatch step2 for henry
 
     #fixmatch step3
+    if args.amp:
+        from apex import amp
+        model, optimizer = amp.initialize(
+            model, optimizer, opt_level=args.opt_level)
+
     model.zero_grad()
     train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
           model, optimizer, ema_model, scheduler)
 
 def train_step1(args, model_step1, classifier, labeled_trainloader, optimizer_step1, scheduler_step1):
-
     print("fixmatch step1 starts")
+    if args.amp:
+        from apex import amp
+        model_step1, optimizer_step1 = amp.initialize(
+            model_step1, optimizer_step1, opt_level=args.opt_level)
+
     criterions = {"CrossEntropy": nn.CrossEntropyLoss(), "KLDiv": nn.KLDivLoss(reduction='batchmean')}
 
     labeled_iter = iter(labeled_trainloader)
@@ -394,7 +398,13 @@ def train_step1(args, model_step1, classifier, labeled_trainloader, optimizer_st
 
         # CL: using (pos1+pos2)/(pos1+pos2+neg) to fine tune
         total_loss = classifier_loss + PGC_loss_labeled
-        total_loss.backward()
+
+        if args.amp:
+            with amp.scale_loss(total_loss, optimizer_step1) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            total_loss.backward()
+
         optimizer_step1.step()
         scheduler_step1.step()
 
