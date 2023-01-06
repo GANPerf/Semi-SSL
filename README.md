@@ -131,5 +131,5 @@ python train_fixmatch.py  --dataset aircrafts --amp --fixmatch 1 --download 0 --
 | Dataset/ratio of dataset usage (labeled) |15%|30%|50 |
 | -- | -- | -- | -- | 
 | CUB200 | 40.97%,29.91%|63.24%,48.72% | 70%,52%|
-| StandfordCar |70.07%,49.44% | 83.55%| |
-| AirCrafts | 60.79%| 71.83%| |
+| StandfordCar |71.79%,49.44% | 83.55%| |
+| AirCrafts | 62.11%| 72.7%| |
