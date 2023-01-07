@@ -23,7 +23,8 @@ from models.classifier import Classifier
 
 from src.utils import load_network
 import torch.nn as nn
-
+from src.fixmatch_config import read_config as read_fixmatch_config
+from model_util import process_unlabel_data_step2
 logger = logging.getLogger(__name__)
 best_acc = 0
 dict_dataset_classes={'cub200':200,'aircrafts':100,'stanfordcars':196}
@@ -70,73 +71,7 @@ def de_interleave(x, size):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='PyTorch FixMatch Training')
-    parser.add_argument('--gpu-id', default='0', type=int,
-                        help='id(s) for CUDA_VISIBLE_DEVICES')
-    parser.add_argument('--num-workers', type=int, default=4,
-                        help='number of workers')
-    parser.add_argument('--dataset', default='cub200', type=str,
-                        choices=['cifar10', 'cifar100','cub200','stanfordcars','aircrafts'],
-                        help='dataset name')
-    parser.add_argument('--num-labeled', type=int, default=4000,
-                        help='number of labeled data')
-    parser.add_argument("--expand-labels", action="store_true",
-                        help="expand labels to fit eval steps")
-    parser.add_argument('--arch', default='wideresnet', type=str,
-                        choices=['wideresnet', 'resnext', 'resnet50'],
-                        help='dataset name')
-    parser.add_argument('--total-steps', default=2**20, type=int,
-                        help='number of total steps to run')
-    parser.add_argument('--eval-step', default=1024, type=int,
-                        help='number of eval steps to run')
-    parser.add_argument('--start-epoch', default=0, type=int,
-                        help='manual epoch number (useful on restarts)')
-    parser.add_argument('--batch-size', default=64, type=int,
-                        help='train batchsize')
-    parser.add_argument('--lr', '--learning-rate', default=0.03, type=float,
-                        help='initial learning rate')
-    parser.add_argument('--warmup', default=0, type=float,
-                        help='warmup epochs (unlabeled data based)')
-    parser.add_argument('--wdecay', default=5e-4, type=float,
-                        help='weight decay')
-    parser.add_argument('--nesterov', action='store_true', default=True,
-                        help='use nesterov momentum')
-    parser.add_argument('--use-ema', action='store_true', default=True,
-                        help='use EMA model')
-    parser.add_argument('--ema-decay', default=0.999, type=float,
-                        help='EMA decay rate')
-    parser.add_argument('--mu', default=7, type=int,
-                        help='coefficient of unlabeled batch size')
-    parser.add_argument('--lambda-u', default=1, type=float,
-                        help='coefficient of unlabeled loss')
-    parser.add_argument('--T', default=1, type=float,
-                        help='pseudo label temperature')
-    parser.add_argument('--threshold', default=0.95, type=float,
-                        help='pseudo label threshold')
-    parser.add_argument('--out', default='result',
-                        help='directory to output the result')
-    parser.add_argument('--resume', default='', type=str,
-                        help='path to latest checkpoint (default: none)')
-    parser.add_argument('--seed', default=None, type=int,
-                        help="random seed")
-    parser.add_argument("--amp", action="store_true",
-                        help="use 16-bit (mixed) precision through NVIDIA apex AMP")
-    parser.add_argument("--opt_level", type=str, default="O1",
-                        help="apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
-                        "See details at https://nvidia.github.io/apex/amp.html")
-    parser.add_argument("--local_rank", type=int, default=-1,
-                        help="For distributed training: local_rank")
-    parser.add_argument('--no-progress', action='store_true',
-                        help="don't use progress bar")
-    parser.add_argument('--root', type=str, default='/data/huawei/Semi-SSL/CUB200',help='root path of dataset')
-    parser.add_argument('--class_num', type=int, default=200)
-    parser.add_argument('--label_ratio', type=float, default=15,help='ratio [=.15,.3,.5]')
-    parser.add_argument('--fixmatch', default=0, type=int, help='1= run fixmatch process')
-    parser.add_argument('--download', default=0, type=int, help='1= download ')
-
-
-
-    args = parser.parse_args()
+    args=read_fixmatch_config()
     global best_acc
 
     def create_model(args):
@@ -262,7 +197,7 @@ def main():
     unlabeled_trainloader = DataLoader(
         unlabeled_dataset,
         sampler=train_sampler(unlabeled_dataset),
-        batch_size=args.batch_size*args.mu,
+        batch_size=args.batch_size * args.mu,
         num_workers=args.num_workers,
         drop_last=True)
 
@@ -327,12 +262,12 @@ def main():
     logger.info(f"  Num Epochs = {args.epochs}")
     logger.info(f"  Batch size per GPU = {args.batch_size}")
     logger.info(
-        f"  Total train batch size = {args.batch_size*args.world_size}")
+        f"  Total train batch size = {args.batch_size * args.world_size}")
     logger.info(f"  Total optimization steps = {args.total_steps}")
 
     # Step1: Initialize model, using pretrained MOCO v2 in pretrained_path or resnet50
     network, feature_dim = load_network('resnet50')  # 'MOCOv2'
-    model_step1 = MOCOTuning(network=network, backbone='resnet50', queue_size=32,  # 'MOCOv2'
+    moco_model = MOCOTuning(network=network, backbone='resnet50', queue_size=32,  # 'MOCOv2'
                             projector_dim=1024, feature_dim=feature_dim,
                             class_num=args.class_num, momentum=0.999, pretrained=True,
                             pretrained_path=None).to(args.device)
@@ -341,17 +276,17 @@ def main():
 
     ## Define Optimizer for optimize step1's  resnet50
     optimizer_step1 = optim.SGD([
-        {'params': model_step1.parameters()},
+        {'params': moco_model.parameters()},
         {'params': classifier.parameters(), 'lr': 0.001 * 10},
     ], lr=0.001, momentum=0.9, weight_decay=0.0001, nesterov=True)
     milestones = [6000, 12000, 18000, 24000]
     scheduler_step1 = torch.optim.lr_scheduler.MultiStepLR(optimizer_step1, milestones, gamma=0.1)
 
     #fixmatch step1
-    train_step1(args, model_step1, classifier, labeled_trainloader, optimizer_step1, scheduler_step1)
+    train_step1(args, moco_model, classifier, labeled_trainloader, optimizer_step1, scheduler_step1)
 
     #fixmatch step2 for henry
-
+    process_unlabel_data_step2(args,device,labeled_trainloader,unlabeled_trainloader,moco_model)
     #fixmatch step3
     if args.amp:
         from apex import amp
@@ -362,12 +297,12 @@ def main():
     train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
           model, optimizer, ema_model, scheduler)
 
-def train_step1(args, model_step1, classifier, labeled_trainloader, optimizer_step1, scheduler_step1):
+def train_step1(args, model, classifier, labeled_trainloader, optimizer_step1, scheduler_step1):
     print("fixmatch step1 starts")
     if args.amp:
         from apex import amp
-        model_step1, optimizer_step1 = amp.initialize(
-            model_step1, optimizer_step1, opt_level=args.opt_level)
+        model, optimizer_step1 = amp.initialize(
+            model, optimizer_step1, opt_level=args.opt_level)
 
     criterions = {"CrossEntropy": nn.CrossEntropyLoss(), "KLDiv": nn.KLDivLoss(reduction='batchmean')}
 
@@ -375,7 +310,7 @@ def train_step1(args, model_step1, classifier, labeled_trainloader, optimizer_st
     len_labeled = len(labeled_trainloader)
 
     for iter_num in range(1, 12000 + 1):  # args.max_iter + 1
-        model_step1.train(True)
+        model.train(True)
         classifier.train(True)
         optimizer_step1.zero_grad()
 
@@ -388,7 +323,7 @@ def train_step1(args, model_step1, classifier, labeled_trainloader, optimizer_st
         targets_x = data_labeled[1].to(args.device)
 
         ## For Labeled Data
-        PGC_logit_labeled, PGC_label_labeled, feat_labeled = model_step1(inputs_x, inputs_x, targets_x)
+        PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(inputs_x, inputs_x, targets_x)
 
         PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled,
                                                        PGC_label_labeled)  # Contrastive loss for instances with the same labels
@@ -414,6 +349,8 @@ def train_step1(args, model_step1, classifier, labeled_trainloader, optimizer_st
             hit_num = (predict == targets_x).sum().item()
             sample_num = predict.size(0)
             print("iter_num: {0:2d}; current acc: {1:8.2f}".format(iter_num, hit_num / float(sample_num)))
+
+    return model
 
 
 def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
