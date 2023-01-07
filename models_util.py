@@ -2,12 +2,15 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 import torch
-from torch import optim, nn
+from torch import optim, nn, optim as optim
 
 from src.main import accuracy_top1
 from src.utils import load_network
 from models.classifier import Classifier
 
+milestones = [6000, 12000, 18000, 24000]
+max_iter=12000
+criterions = {"CrossEntropy": nn.CrossEntropyLoss(), "KLDiv": nn.KLDivLoss(reduction='batchmean')}
 def generate_cluster(args, data, label, pseudo_label, cluster, confidence, arr_path):
     j = 1
     i = 0
@@ -100,19 +103,8 @@ def select_unlabel_data(args):
 
 
 def process_unlabel_data_step2(args,device,labeled_data,unlabeled_data,model_moco):
-    criterions = {"CrossEntropy": nn.CrossEntropyLoss(), "KLDiv": nn.KLDivLoss(reduction='batchmean')}
-    net, feature_dim = load_network('resnet50')
-    model_ce = net(projector_dim=1000, pretrained=True).to(device)
-    classifier_ce = Classifier(feature_dim, args.class_num).to(device)
 
-    ## Define Optimizer for optimize step4's resnet50
-    optimizer_ce = optim.SGD([
-        {'params': model_ce.parameters()},
-        {'params': classifier_ce.parameters(), 'lr': args.lr * args.lr_ratio},
-    ], lr=args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True)
-    milestones = [6000, 12000, 18000, 24000]
-    scheduler_ce = torch.optim.lr_scheduler.MultiStepLR(optimizer_ce, milestones, gamma=0.1)
-    train_model_CE(classifier_ce, criterions, labeled_data, device, model_ce, optimizer_ce, scheduler_ce)
+    model_ce, classifier_ce=train_model_CE(args, criterions, labeled_data, device)
     process_unlabel_data_step3(args, classifier_ce, unlabeled_data, device, model_moco, model_ce)
 
 def process_unlabel_data_step3(args, classifier_ce, dataset_loader, device, model_moco, model_ce):  # first mode for cycle, second for psuedo
@@ -127,7 +119,8 @@ def process_unlabel_data_step3(args, classifier_ce, dataset_loader, device, mode
     classifier_ce.eval()
 
     with torch.no_grad():
-        for i, (images, target, path) in enumerate(dataset_loader):
+        #for i, (images, target, path) in enumerate(dataset_loader):
+        for i, (images, target) in enumerate(dataset_loader):
             images = images[0].to(device)
             # img_unlabeled_k = data_unlabeled[0][1].to(device)
 
@@ -173,12 +166,23 @@ def process_unlabel_data_step3(args, classifier_ce, dataset_loader, device, mode
         # f.write((str(line[0][9:])) + '\t' + str(int(line[2])) + '\n')
     return df_unlabeled_cluster, df_select_unlabel_data
 
-def train_model_CE(classifier_ce, criterions, dataset_loader, device, model_ce, optimizer_ce, scheduler_ce):
+def train_model_CE(args, criterions, dataset_loader, device):
     # step4: Using labeled data (CE loss) to fine-tuning MOCOv2
-    print('step4 starts')
+    print('model_CE training starts')
+    net, feature_dim = load_network('resnet50')
+    model_ce = net(projector_dim=1000, pretrained=True).to(device)
+    classifier_ce = Classifier(feature_dim, args.class_num).to(device)
+
+    ## Define Optimizer for optimize step4's resnet50
+    optimizer_ce = optim.SGD([
+        {'params': model_ce.parameters()},
+        {'params': classifier_ce.parameters(), 'lr': args.lr * args.lr_ratio},
+    ], lr=args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True)
+    amp,model_ce,optimizer_ce=amp_creator(args,model_ce,optimizer_ce)
+    scheduler_ce = torch.optim.lr_scheduler.MultiStepLR(optimizer_ce, milestones, gamma=0.1)
     len_labeled = len(dataset_loader)
     iter_labeled = iter(dataset_loader)
-    for iter_num in range(1, 12000 + 1):  # args.max_iter + 1
+    for iter_num in range(1, args.modelCE_iter + 1):  # args.max_iter + 1
         model_ce.train(True)
         classifier_ce.train(True)
         optimizer_ce.zero_grad()
@@ -188,7 +192,7 @@ def train_model_CE(classifier_ce, criterions, dataset_loader, device, model_ce, 
 
         data_labeled = iter_labeled.next()
 
-        img_labeled_q = data_labeled[0][0].to(device)
+        img_labeled_q = data_labeled[0].to(device)
         # img_labeled_k = data_labeled[0][1].to(device)
         label = data_labeled[1].to(device)
 
@@ -198,7 +202,13 @@ def train_model_CE(classifier_ce, criterions, dataset_loader, device, model_ce, 
         classifier_loss = criterions['CrossEntropy'](out, label)
 
         total_loss = classifier_loss
-        total_loss.backward()
+
+
+        if args.amp:
+            with amp.scale_loss(total_loss, optimizer_ce) as scaled_loss:
+                total_loss.backward()
+        else:
+            total_loss.backward()
         optimizer_ce.step()
         scheduler_ce.step()
 
@@ -208,3 +218,71 @@ def train_model_CE(classifier_ce, criterions, dataset_loader, device, model_ce, 
             hit_num = (predict == label).sum().item()
             sample_num = predict.size(0)
             print("iter_num: {0:2d}; current acc: {1:8.2f}".format(iter_num, hit_num / float(sample_num)))
+    return model_ce, classifier_ce
+
+def amp_creator(args, model, optimizer):
+    if args.amp:
+        from apex import amp
+        model, optimizer = amp.initialize(
+            model, optimizer, opt_level=args.opt_level)
+        #return amp,model, optimizer
+    return amp,model,optimizer
+
+
+def train_step1(args, model, classifier, labeled_trainloader):
+    print("fixmatch step1 starts")
+
+
+    s1_optimizer = optim.SGD([
+        {'params': model.parameters()},
+        {'params': classifier.parameters(), 'lr': 0.001 * 10},
+    ], lr=0.001, momentum=0.9, weight_decay=0.0001, nesterov=True)
+    amp, model, s1_optimizer = amp_creator(args, model, s1_optimizer)
+    milestones = [6000, 12000, 18000, 24000]
+    scheduler_step1 = torch.optim.lr_scheduler.MultiStepLR(s1_optimizer, milestones, gamma=0.1)
+
+    labeled_iter = iter(labeled_trainloader)
+    len_labeled = len(labeled_trainloader)
+
+    for iter_num in range(1, args.iter_train_step1):  # args.max_iter + 1
+        model.train(True)
+        classifier.train(True)
+        s1_optimizer.zero_grad()
+
+        if iter_num % len_labeled == 0:
+            labeled_iter = iter(labeled_trainloader)
+
+
+        data_labeled = labeled_iter.next()
+        inputs_x = data_labeled[0].to(args.device)
+        targets_x = data_labeled[1].to(args.device)
+
+        ## For Labeled Data
+        PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(inputs_x, inputs_x, targets_x)
+
+        PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled,
+                                                       PGC_label_labeled)  # Contrastive loss for instances with the same labels
+
+        out = classifier(feat_labeled)
+        classifier_loss = criterions['CrossEntropy'](out, targets_x)
+
+        # CL: using (pos1+pos2)/(pos1+pos2+neg) to fine tune
+        total_loss = classifier_loss + PGC_loss_labeled
+
+        if args.amp:
+            with amp.scale_loss(total_loss, s1_optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            total_loss.backward()
+
+        s1_optimizer.step()
+        scheduler_step1.step()
+
+        ## Calculate the training accuracy of current iteration
+        if iter_num % 100 == 0:
+            _, predict = torch.max(out, 1)
+            hit_num = (predict == targets_x).sum().item()
+            sample_num = predict.size(0)
+            print("iter_num: {0:2d}; current acc: {1:8.2f}".format(iter_num, hit_num / float(sample_num)))
+
+    return model
