@@ -1,4 +1,3 @@
-import argparse
 import logging
 import math
 import os
@@ -24,10 +23,12 @@ from models.classifier import Classifier
 from src.utils import load_network
 import torch.nn as nn
 from src.fixmatch_config import read_config as read_fixmatch_config
-from model_util import process_unlabel_data_step2
+from models_util import process_unlabel_data_step2, amp_creator, train_step1
+
 logger = logging.getLogger(__name__)
 best_acc = 0
 dict_dataset_classes={'cub200':200,'aircrafts':100,'stanfordcars':196}
+criterions = {"CrossEntropy": nn.CrossEntropyLoss(), "KLDiv": nn.KLDivLoss(reduction='batchmean')}
 
 def save_checkpoint(state, is_best, checkpoint, filename='checkpoint.pth.tar'):
     filepath = os.path.join(checkpoint, filename)
@@ -275,88 +276,25 @@ def main():
     classifier = Classifier(feature_dim, args.class_num).to(args.device)
 
     ## Define Optimizer for optimize step1's  resnet50
-    optimizer_step1 = optim.SGD([
-        {'params': moco_model.parameters()},
-        {'params': classifier.parameters(), 'lr': 0.001 * 10},
-    ], lr=0.001, momentum=0.9, weight_decay=0.0001, nesterov=True)
-    milestones = [6000, 12000, 18000, 24000]
-    scheduler_step1 = torch.optim.lr_scheduler.MultiStepLR(optimizer_step1, milestones, gamma=0.1)
+
 
     #fixmatch step1
-    train_step1(args, moco_model, classifier, labeled_trainloader, optimizer_step1, scheduler_step1)
+    moco_model=train_step1(args, moco_model, classifier, labeled_trainloader)
 
     #fixmatch step2 for henry
     process_unlabel_data_step2(args,device,labeled_trainloader,unlabeled_trainloader,moco_model)
     #fixmatch step3
-    if args.amp:
-        from apex import amp
-        model, optimizer = amp.initialize(
-            model, optimizer, opt_level=args.opt_level)
 
     model.zero_grad()
     train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
           model, optimizer, ema_model, scheduler)
 
-def train_step1(args, model, classifier, labeled_trainloader, optimizer_step1, scheduler_step1):
-    print("fixmatch step1 starts")
-    if args.amp:
-        from apex import amp
-        model, optimizer_step1 = amp.initialize(
-            model, optimizer_step1, opt_level=args.opt_level)
-
-    criterions = {"CrossEntropy": nn.CrossEntropyLoss(), "KLDiv": nn.KLDivLoss(reduction='batchmean')}
-
-    labeled_iter = iter(labeled_trainloader)
-    len_labeled = len(labeled_trainloader)
-
-    for iter_num in range(1, 12000 + 1):  # args.max_iter + 1
-        model.train(True)
-        classifier.train(True)
-        optimizer_step1.zero_grad()
-
-        if iter_num % len_labeled == 0:
-            labeled_iter = iter(labeled_trainloader)
-
-
-        data_labeled = labeled_iter.next()
-        inputs_x = data_labeled[0].to(args.device)
-        targets_x = data_labeled[1].to(args.device)
-
-        ## For Labeled Data
-        PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(inputs_x, inputs_x, targets_x)
-
-        PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled,
-                                                       PGC_label_labeled)  # Contrastive loss for instances with the same labels
-
-        out = classifier(feat_labeled)
-        classifier_loss = criterions['CrossEntropy'](out, targets_x)
-
-        # CL: using (pos1+pos2)/(pos1+pos2+neg) to fine tune
-        total_loss = classifier_loss + PGC_loss_labeled
-
-        if args.amp:
-            with amp.scale_loss(total_loss, optimizer_step1) as scaled_loss:
-                scaled_loss.backward()
-        else:
-            total_loss.backward()
-
-        optimizer_step1.step()
-        scheduler_step1.step()
-
-        ## Calculate the training accuracy of current iteration
-        if iter_num % 100 == 0:
-            _, predict = torch.max(out, 1)
-            hit_num = (predict == targets_x).sum().item()
-            sample_num = predict.size(0)
-            print("iter_num: {0:2d}; current acc: {1:8.2f}".format(iter_num, hit_num / float(sample_num)))
-
-    return model
-
 
 def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
           model, optimizer, ema_model, scheduler):
-    if args.amp:
-        from apex import amp
+    # if args.amp:
+    #     from apex import amp
+    amp, model, optimizer = amp_creator(args, model, optimizer)
     global best_acc
     test_accs = []
     end = time.time()
