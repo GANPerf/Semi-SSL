@@ -316,10 +316,6 @@ def main():
         optimizer.load_state_dict(checkpoint['optimizer'])
         scheduler.load_state_dict(checkpoint['scheduler'])
 
-    if args.local_rank != -1:
-        model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=[args.local_rank],
-            output_device=args.local_rank, find_unused_parameters=True)
 
     logger.info("***** Running training *****")
     logger.info(f"  Task = {args.dataset}@{args.num_labeled}")
@@ -357,6 +353,11 @@ def main():
         from apex import amp
         model, optimizer = amp.initialize(
             model, optimizer, opt_level=args.opt_level)
+
+    if args.local_rank != -1:
+        model = torch.nn.parallel.DistributedDataParallel(
+            model, device_ids=[args.local_rank],
+            output_device=args.local_rank, find_unused_parameters=True)
 
     model.zero_grad()
     train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
