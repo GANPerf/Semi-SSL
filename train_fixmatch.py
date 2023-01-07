@@ -27,7 +27,7 @@ from models_util import process_unlabel_data_step2, amp_creator, train_step1
 
 logger = logging.getLogger(__name__)
 best_acc = 0
-dict_dataset_classes={'cub200':200,'aircrafts':100,'stanfordcars':196}
+dict_dataset_classes={'cub_200_2011':200,'cub200':200,'aircrafts':100,'stanfordcars':196}
 criterions = {"CrossEntropy": nn.CrossEntropyLoss(), "KLDiv": nn.KLDivLoss(reduction='batchmean')}
 
 def save_checkpoint(state, is_best, checkpoint, filename='checkpoint.pth.tar'):

@@ -176,9 +176,10 @@ def train_model_CE(args, criterions, dataset_loader, device):
     ## Define Optimizer for optimize step4's resnet50
     optimizer_ce = optim.SGD([
         {'params': model_ce.parameters()},
-        {'params': classifier_ce.parameters(), 'lr': args.lr * args.lr_ratio},
-    ], lr=args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True)
+        {'params': classifier_ce.parameters(), 'lr': 0.001 * 10},
+    ], lr=0.001, momentum=0.9, weight_decay=0.0001, nesterov=True)
     amp,model_ce,optimizer_ce=amp_creator(args,model_ce,optimizer_ce)
+    milestones = [6000, 12000, 18000, 24000]
     scheduler_ce = torch.optim.lr_scheduler.MultiStepLR(optimizer_ce, milestones, gamma=0.1)
     len_labeled = len(dataset_loader)
     iter_labeled = iter(dataset_loader)
@@ -204,9 +205,10 @@ def train_model_CE(args, criterions, dataset_loader, device):
         total_loss = classifier_loss
 
 
+
         if args.amp:
             with amp.scale_loss(total_loss, optimizer_ce) as scaled_loss:
-                total_loss.backward()
+                scaled_loss.backward()
         else:
             total_loss.backward()
         optimizer_ce.step()
