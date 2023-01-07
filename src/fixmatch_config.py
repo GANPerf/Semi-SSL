@@ -64,8 +64,8 @@ def read_config():
     parser.add_argument('--label_ratio', type=float, default=15, help='ratio [=.15,.3,.5]')
     parser.add_argument('--fixmatch', default=0, type=int, help='1= run fixmatch process')
     parser.add_argument('--download', default=0, type=int, help='1= download ')
-    parser.add_argument('--iter-train-step1', type=int, default=200,help='for testing')
-    parser.add_argument('--modelCE_iter', type=int, default=10000, help='for testing')
+    parser.add_argument('--iter-train-step1', type=int, default=12000,help='for testing')
+    parser.add_argument('--modelCE_iter', type=int, default=12000, help='for testing')
     parser.add_argument('--lr_ratio', type=float, default='10')
     parser.add_argument('--weight_decay', type=float, default=0.0001)
 
