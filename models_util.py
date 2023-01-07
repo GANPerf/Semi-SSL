@@ -11,6 +11,7 @@ from models.classifier import Classifier
 milestones = [6000, 12000, 18000, 24000]
 max_iter=12000
 criterions = {"CrossEntropy": nn.CrossEntropyLoss(), "KLDiv": nn.KLDivLoss(reduction='batchmean')}
+
 def generate_cluster(args, data, label, pseudo_label, cluster, confidence, arr_path):
     j = 1
     i = 0
@@ -76,8 +77,7 @@ def select_unlabel_data(args):
 
         for i in range(sub_arr.shape[0]):
             if sub_arr[i, 3] == most_psuedo_label and float(sub_arr[i, 4]) >= args.confidence:
-                select_total_unlabel_data = np.concatenate((select_total_unlabel_data, sub_arr[i, :].reshape(1, -1)),
-                                                           axis=0)
+                select_total_unlabel_data = np.concatenate((select_total_unlabel_data, sub_arr[i, :].reshape(1, -1)), axis=0)
 
         j = j + 1
 
@@ -102,12 +102,12 @@ def select_unlabel_data(args):
     return dataframe
 
 
-def process_unlabel_data_step2(args,device,labeled_data,unlabeled_data,model_moco):
+def process_unlabel_data_step2(args, device, labeled_data, unlabeled_data, moco_model):
 
-    model_ce, classifier_ce=train_model_CE(args, criterions, labeled_data, device)
-    process_unlabel_data_step3(args, classifier_ce, unlabeled_data, device, model_moco, model_ce)
+    ce_model, classifier=train_model_CE(args, criterions, labeled_data, device)
+    process_unlabel_data_step3(args, classifier, unlabeled_data, device, moco_model, ce_model)
 
-def process_unlabel_data_step3(args, classifier_ce, dataset_loader, device, model_moco, model_ce):  # first mode for cycle, second for psuedo
+def process_unlabel_data_step3(args, ce_classifier, dataset_loader, device, model_moco, ce_model):  # first mode for cycle, second for psuedo
     print('step3 starts')
     data = np.zeros((1, 2048))
     label = np.zeros(1)
@@ -115,19 +115,19 @@ def process_unlabel_data_step3(args, classifier_ce, dataset_loader, device, mode
     confidence = np.zeros(1)
     arr_path = ['first']
     model_moco.encoder_q.eval()
-    model_ce.eval()
-    classifier_ce.eval()
+    ce_model.eval()
+    ce_classifier.eval()
 
     with torch.no_grad():
-        #for i, (images, target, path) in enumerate(dataset_loader):
-        for i, (images, target) in enumerate(dataset_loader):
+        for i, (images, target, path) in enumerate(dataset_loader):
+        #for i, (images, target) in enumerate(dataset_loader):
             images = images[0].to(device)
             # img_unlabeled_k = data_unlabeled[0][1].to(device)
 
             # arrange pseudo label
             _, q_f_unlabeled = model_moco.encoder_q(images)  # feat for retrieval using MOCOv2
-            _, unlabeled_feat = model_ce(images)  # feat for arrange psuedo label using Resnet50(pretrained=True)
-            logit_unlabeled = classifier_ce(unlabeled_feat)
+            _, unlabeled_feat = ce_model(images)  # feat for arrange psuedo label using Resnet50(pretrained=True)
+            logit_unlabeled = ce_classifier(unlabeled_feat)
             prob_unlabeled = torch.softmax(logit_unlabeled.detach(), dim=-1)
             confidence_unlabeled, predict_unlabeled = torch.max(prob_unlabeled, dim=-1)
 
@@ -170,22 +170,22 @@ def train_model_CE(args, criterions, dataset_loader, device):
     # step4: Using labeled data (CE loss) to fine-tuning MOCOv2
     print('model_CE training starts')
     net, feature_dim = load_network('resnet50')
-    model_ce = net(projector_dim=1000, pretrained=True).to(device)
-    classifier_ce = Classifier(feature_dim, args.class_num).to(device)
+    model = net(projector_dim=1000, pretrained=True).to(device)
+    classififer = Classifier(feature_dim, args.class_num).to(device)
 
     ## Define Optimizer for optimize step4's resnet50
     optimizer_ce = optim.SGD([
-        {'params': model_ce.parameters()},
-        {'params': classifier_ce.parameters(), 'lr': 0.001 * 10},
+        {'params': model.parameters()},
+        {'params': classififer.parameters(), 'lr': 0.001 * 10},
     ], lr=0.001, momentum=0.9, weight_decay=0.0001, nesterov=True)
-    amp,model_ce,optimizer_ce=amp_creator(args,model_ce,optimizer_ce)
+    amp,model,optimizer_ce=amp_creator(args,model,optimizer_ce)
     milestones = [6000, 12000, 18000, 24000]
     scheduler_ce = torch.optim.lr_scheduler.MultiStepLR(optimizer_ce, milestones, gamma=0.1)
     len_labeled = len(dataset_loader)
     iter_labeled = iter(dataset_loader)
     for iter_num in range(1, args.modelCE_iter + 1):  # args.max_iter + 1
-        model_ce.train(True)
-        classifier_ce.train(True)
+        model.train(True)
+        classififer.train(True)
         optimizer_ce.zero_grad()
 
         if iter_num % len_labeled == 0:
@@ -198,13 +198,11 @@ def train_model_CE(args, criterions, dataset_loader, device):
         label = data_labeled[1].to(device)
 
         ## For Labeled Data
-        _, feat_labeled = model_ce(img_labeled_q)
-        out = classifier_ce(feat_labeled)
+        _, feat_labeled = model(img_labeled_q)
+        out = classififer(feat_labeled)
         classifier_loss = criterions['CrossEntropy'](out, label)
 
         total_loss = classifier_loss
-
-
 
         if args.amp:
             with amp.scale_loss(total_loss, optimizer_ce) as scaled_loss:
@@ -220,7 +218,7 @@ def train_model_CE(args, criterions, dataset_loader, device):
             hit_num = (predict == label).sum().item()
             sample_num = predict.size(0)
             print("iter_num: {0:2d}; current acc: {1:8.2f}".format(iter_num, hit_num / float(sample_num)))
-    return model_ce, classifier_ce
+    return model, classififer
 
 def amp_creator(args, model, optimizer):
     if args.amp:
@@ -235,13 +233,13 @@ def train_step1(args, model, classifier, labeled_trainloader):
     print("fixmatch step1 starts")
 
 
-    s1_optimizer = optim.SGD([
+    optimizer = optim.SGD([
         {'params': model.parameters()},
         {'params': classifier.parameters(), 'lr': 0.001 * 10},
     ], lr=0.001, momentum=0.9, weight_decay=0.0001, nesterov=True)
-    amp, model, s1_optimizer = amp_creator(args, model, s1_optimizer)
+    amp, model, optimizer = amp_creator(args, model, optimizer)
     milestones = [6000, 12000, 18000, 24000]
-    scheduler_step1 = torch.optim.lr_scheduler.MultiStepLR(s1_optimizer, milestones, gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones, gamma=0.1)
 
     labeled_iter = iter(labeled_trainloader)
     len_labeled = len(labeled_trainloader)
@@ -249,7 +247,7 @@ def train_step1(args, model, classifier, labeled_trainloader):
     for iter_num in range(1, args.iter_train_step1):  # args.max_iter + 1
         model.train(True)
         classifier.train(True)
-        s1_optimizer.zero_grad()
+        optimizer.zero_grad()
 
         if iter_num % len_labeled == 0:
             labeled_iter = iter(labeled_trainloader)
@@ -262,8 +260,7 @@ def train_step1(args, model, classifier, labeled_trainloader):
         ## For Labeled Data
         PGC_logit_labeled, PGC_label_labeled, feat_labeled = model(inputs_x, inputs_x, targets_x)
 
-        PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled,
-                                                       PGC_label_labeled)  # Contrastive loss for instances with the same labels
+        PGC_loss_labeled = criterions['KLDiv'](PGC_logit_labeled,PGC_label_labeled)  # Contrastive loss for instances with the same labels
 
         out = classifier(feat_labeled)
         classifier_loss = criterions['CrossEntropy'](out, targets_x)
@@ -272,13 +269,13 @@ def train_step1(args, model, classifier, labeled_trainloader):
         total_loss = classifier_loss + PGC_loss_labeled
 
         if args.amp:
-            with amp.scale_loss(total_loss, s1_optimizer) as scaled_loss:
+            with amp.scale_loss(total_loss, optimizer) as scaled_loss:
                 scaled_loss.backward()
         else:
             total_loss.backward()
 
-        s1_optimizer.step()
-        scheduler_step1.step()
+        optimizer.step()
+        scheduler.step()
 
         ## Calculate the training accuracy of current iteration
         if iter_num % 100 == 0:

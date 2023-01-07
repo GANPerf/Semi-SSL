@@ -2,6 +2,7 @@ import torch
 import torchvision
 from torchvision.transforms import transforms
 
+import data
 from data.randaugment import RandAugmentMC
 from models.resnet import resnet18, resnet34, resnet50, resnet152, resnet101
 from models.efficientnet import EfficientNetFc
@@ -22,6 +23,17 @@ cub200_std =(0.229, 0.224, 0.225)
 img_size=224
 crop_size=224
 resize_size = 256
+
+class ImageFolderWithPaths(torchvision.datasets.ImageFolder):
+    """Custom dataset that includes image file paths. Extends
+    torchvision.datasets.ImageFolder
+    """
+
+    def __getitem__(self, index):
+        original_tuple = super(ImageFolderWithPaths, self).__getitem__(index)
+        path = self.imgs[index][0]
+        tuple_with_path = (original_tuple + (path,))
+        return tuple_with_path
 
 class TransformFixMatch(object):
     def __init__(self, mean, std):
@@ -111,16 +123,16 @@ def load_data(args):
             return labeled_dataset, unlabeled_dataset, test_dataset
         elif args.dataset in ['cub200','stanfordcars','aircrafts']:
             proportions = [args.label_ratio, 1-args.label_ratio]
-            unlabeled_set = torchvision.datasets.ImageFolder(
+            unlabeled_set = ImageFolderWithPaths(
                 os.path.join(args.root, 'train'),
                 transform=TransformFixMatch(mean=cub200_mean, std=cub200_std))  # StandfordCars(data_dir,train=train,transform=transform)
             lengths = [int(p * len(unlabeled_set)) for p in proportions]
             lengths[-1] = len(unlabeled_set) - sum(lengths[:-1])
-            label_set = torchvision.datasets.ImageFolder(
+            label_set = ImageFolderWithPaths(
                 os.path.join(args.root, 'train'),
                 transform=transform_labeled)
             labeled_set,_=torch.utils.data.random_split(label_set,  lengths)
-            test_set = torchvision.datasets.ImageFolder(
+            test_set = ImageFolderWithPaths(
                 os.path.join(args.root, 'test'),
                 transform=transform_val)  # StandfordCars(data_dir,train=train,transform=transform)
             return labeled_set,unlabeled_set,test_set

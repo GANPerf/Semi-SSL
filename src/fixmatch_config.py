@@ -61,7 +61,7 @@ def read_config():
                         help="don't use progress bar")
     parser.add_argument('--root', type=str, default='/data/huawei/Semi-SSL/CUB200', help='root path of dataset')
     parser.add_argument('--class_num', type=int, default=200)
-    parser.add_argument('--label_ratio', type=float, default=15, help='ratio [=.15,.3,.5]')
+    parser.add_argument('--label_ratio', type=float, default=.15, help='ratio [=.15,.3,.5]')
     parser.add_argument('--fixmatch', default=0, type=int, help='1= run fixmatch process')
     parser.add_argument('--download', default=0, type=int, help='1= download ')
     parser.add_argument('--iter-train-step1', type=int, default=12000,help='for testing')

@@ -208,6 +208,10 @@ def main():
         batch_size=args.batch_size,
         num_workers=args.num_workers)
 
+    # for i, (images, target,paths) in enumerate(unlabeled_trainloader):
+    #     print('')
+    #     print(images)
+
     if args.local_rank not in [-1, 0]:
         torch.distributed.barrier()
 
@@ -280,15 +284,33 @@ def main():
 
     #fixmatch step1
     moco_model=train_step1(args, moco_model, classifier, labeled_trainloader)
-
+    is_loop=True
     #fixmatch step2 for henry
-    process_unlabel_data_step2(args,device,labeled_trainloader,unlabeled_trainloader,moco_model)
+    while is_loop:
+        df_unlabeled_cluster, df_select_unlabel_data = process_unlabel_data_step2(args,device,labeled_trainloader,unlabeled_trainloader,moco_model)
+        if not (is_pick_unlabeled_data(df_unlabeled_cluster, args.threshold)):
+            break
+
+        # merge selected_unlabel_data to dataset_loaders["train"]
+        labeled_trainloader.dataset.samples.extend(list(
+            zip(df_select_unlabel_data['image'], df_select_unlabel_data['pseudo_label'].astype(float).astype(int))))
+
+        unlabeled_trainloader.dataset.samples = list(
+            filter(lambda x: x[0] not in list(df_select_unlabel_data.loc[:, 'image'].values),
+                   unlabeled_trainloader.dataset.samples))  # remove df_select_unlabel_data from unlabeled_train set
+
+
     #fixmatch step3
 
-    model.zero_grad()
-    train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
-          model, optimizer, ema_model, scheduler)
+        model.zero_grad()
+        train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
+              model, optimizer, ema_model, scheduler)
 
+def is_pick_unlabeled_data(df, confidence_unlabeled):
+    df1 = df.groupby(['cluster_label', 'pseudo_label']).filter(lambda x: len(x) > 1)
+    if len(df1[df1['confidence_unlabeled'] > confidence_unlabeled]) >= 1:
+        return True
+    return False
 
 def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
           model, optimizer, ema_model, scheduler):
