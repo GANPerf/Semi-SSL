@@ -26,7 +26,7 @@ import torch.nn as nn
 
 logger = logging.getLogger(__name__)
 best_acc = 0
-dict_dataset_classes={'cub200':200,'aircrafts':100,'stanfordcars':196}
+dict_dataset_classes={'cub_200_2011':200, 'cub200':200, 'aircrafts':100,'stanfordcars':196}
 
 def save_checkpoint(state, is_best, checkpoint, filename='checkpoint.pth.tar'):
     filepath = os.path.join(checkpoint, filename)
@@ -118,7 +118,7 @@ def main():
     parser.add_argument('--resume', default='', type=str,
                         help='path to latest checkpoint (default: none)')
     parser.add_argument('--seed', default=None, type=int,
-                        help="random seed")
+                        help="random seed")  # 41/47
     parser.add_argument("--amp", action="store_true",
                         help="use 16-bit (mixed) precision through NVIDIA apex AMP")
     parser.add_argument("--opt_level", type=str, default="O1",
@@ -344,7 +344,7 @@ def main():
     scheduler_step1 = torch.optim.lr_scheduler.MultiStepLR(optimizer_step1, milestones, gamma=0.1)
 
     #fixmatch step1
-    train_step1(args, model_step1, classifier, labeled_trainloader, optimizer_step1, scheduler_step1)
+    train_step1(args, model_step1, classifier, labeled_trainloader, optimizer_step1, scheduler_step1) #train moco
 
     #fixmatch step2 for henry
 

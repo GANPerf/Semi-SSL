@@ -106,10 +106,10 @@ def load_data(args):
                            "test": test_loader}
 
     elif args.fixmatch==True:
-        if args.dataset=='cub200':
+        if args.dataset=='cub_200_2011':
             labeled_dataset, unlabeled_dataset, test_dataset = get_cub200(args)
             return labeled_dataset, unlabeled_dataset, test_dataset
-        elif args.dataset in ['stanfordcars','aircrafts'] :
+        elif args.dataset in ['cub200','stanfordcars','aircrafts']:
             proportions = [args.label_ratio, 1-args.label_ratio]
             unlabeled_set = torchvision.datasets.ImageFolder(
                 os.path.join(args.root, 'train'),
