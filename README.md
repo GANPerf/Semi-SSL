@@ -127,6 +127,8 @@ Answer: Yes, the internal and external double loop play a vital role in improvin
 ## Fixmatch(reproduction+ backbone=Resnet50)| classification accuracy (%) of SSL on CUB200 /StandfordCar/AirCrafts (Best accuracy/Mean accuracy)
 python train_fixmatch.py --dataset stanfordcars --amp --fixmatch 1 --download 0 --root /root/Projects/Semi-SSL/StanfordCars/StanfordCars  --arch resnet50 --batch-size 64 --lr 0.03 --seed 5 --out results/stanforcars@1500.5 --label_ratio .15
 
+python -m torch.distributed.launch --nproc_per_node 2 ./train_fixmatch.py --dataset stanfordcars --amp --fixmatch 1 --download 0 --root /data/yangyang/StanfordCars --arch resnet50 --batch-size 32 --lr 0.03 --seed 5 --out results/stanforcars@1500.5 --label_ratio .15
+
 python train_fixmatch.py  --dataset aircrafts --amp --fixmatch 1 --download 0 --root /root/Projects/Semi-SSL/Aircraft/Aircraft  --arch resnet50 --batch-size 64 --lr 0.03 --seed 5 --out results/aircrafts@1500.5 --label_ratio .15
 | Dataset/ratio of dataset usage (labeled) |15%|30%|50 |
 | -- | -- | -- | -- | 
