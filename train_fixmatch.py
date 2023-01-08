@@ -208,9 +208,6 @@ def main():
         batch_size=args.batch_size,
         num_workers=args.num_workers)
 
-    # for i, (images, target,paths) in enumerate(unlabeled_trainloader):
-    #     print('')
-    #     print(images)
 
     if args.local_rank not in [-1, 0]:
         torch.distributed.barrier()
@@ -295,12 +292,12 @@ def main():
             break
 
         # merge selected_unlabel_data to dataset_loaders["train"]
-        labeled_trainloader.dataset.samples.extend(list(
+        labeled_trainloader.dataset.dataset.samples.extend(list(
             zip(df_select_unlabel_data['image'], df_select_unlabel_data['pseudo_label'].astype(float).astype(int))))
 
-        unlabeled_trainloader.dataset.samples = list(
+        unlabeled_trainloader.dataset.dataset.samples = list(
             filter(lambda x: x[0] not in list(df_select_unlabel_data.loc[:, 'image'].values),
-                   unlabeled_trainloader.dataset.samples))  # remove df_select_unlabel_data from unlabeled_train set
+                   unlabeled_trainloader.dataset.dataset.samples))  # remove df_select_unlabel_data from unlabeled_train set
 
 
     #fixmatch step3
@@ -346,22 +343,22 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
                          disable=args.local_rank not in [-1, 0])
         for batch_idx in range(args.eval_step):
             try:
-                inputs_x, targets_x = labeled_iter.next() #next(labeled_iter)
+                inputs_x, targets_x,_ = labeled_iter.next() #next(labeled_iter)
             except:
                 if args.world_size > 1:
                     labeled_epoch += 1
                     labeled_trainloader.sampler.set_epoch(labeled_epoch)
                 labeled_iter = iter(labeled_trainloader)
-                inputs_x, targets_x = labeled_iter.next()
+                inputs_x, targets_x,_ = labeled_iter.next()
 
             try:
-                (inputs_u_w, inputs_u_s), _ = next(unlabeled_iter)
+                (inputs_u_w, inputs_u_s), _,_ = next(unlabeled_iter)
             except:
                 if args.world_size > 1:
                     unlabeled_epoch += 1
                     unlabeled_trainloader.sampler.set_epoch(unlabeled_epoch)
                 unlabeled_iter = iter(unlabeled_trainloader)
-                (inputs_u_w, inputs_u_s), _ = next(unlabeled_iter)
+                (inputs_u_w, inputs_u_s), _,_ = next(unlabeled_iter)
 
             data_time.update(time.time() - end)
             batch_size = inputs_x.shape[0]
