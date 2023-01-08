@@ -105,7 +105,8 @@ def select_unlabel_data(args):
 def process_unlabel_data_step2(args, device, labeled_data, unlabeled_data, moco_model):
 
     ce_model, classifier=train_model_CE(args, criterions, labeled_data, device)
-    process_unlabel_data_step3(args, classifier, unlabeled_data, device, moco_model, ce_model)
+    df_unlabeled_cluster, df_select_unlabel_data=process_unlabel_data_step3(args, classifier, unlabeled_data, device, moco_model, ce_model)
+    return df_unlabeled_cluster, df_select_unlabel_data
 
 def process_unlabel_data_step3(args, ce_classifier, dataset_loader, device, model_moco, ce_model):  # first mode for cycle, second for psuedo
     print('step3 starts')
