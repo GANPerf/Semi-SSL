@@ -285,10 +285,13 @@ def main():
     #fixmatch step1
     moco_model=train_step1(args, moco_model, classifier, labeled_trainloader)
     is_loop=True
+    loop_num = 3  # the number of loop
     #fixmatch step2 for henry
     while is_loop:
+        print("the num of cycle: {}".format(4-loop_num))
         df_unlabeled_cluster, df_select_unlabel_data = process_unlabel_data_step2(args,device,labeled_trainloader,unlabeled_trainloader,moco_model)
-        if not (is_pick_unlabeled_data(df_unlabeled_cluster, args.threshold)):
+        loop_num = loop_num - 1
+        if not (is_pick_unlabeled_data(df_unlabeled_cluster, args.confidence)) and loop_num:   # args.confidence instead of args.threshold
             break
 
         # merge selected_unlabel_data to dataset_loaders["train"]
