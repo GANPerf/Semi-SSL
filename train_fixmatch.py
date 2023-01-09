@@ -286,6 +286,7 @@ def main():
     moco_model=train_step1(args, moco_model, classifier, labeled_trainloader)
     is_loop=True
     loop_num = 3  # the number of loop
+    amp, model, optimizer = amp_creator(args, model, optimizer) #for fixmatch
     #fixmatch step2 for henry
     while is_loop:
         print("the num of cycle: {}".format(4-loop_num))
@@ -307,7 +308,7 @@ def main():
 
         model.zero_grad()
         train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
-              model, optimizer, ema_model, scheduler)
+              model, optimizer, ema_model, scheduler,amp)
 
 def is_pick_unlabeled_data(df, confidence_unlabeled):
     df1 = df.groupby(['cluster_label', 'pseudo_label']).filter(lambda x: len(x) > 1)
@@ -316,10 +317,10 @@ def is_pick_unlabeled_data(df, confidence_unlabeled):
     return False
 
 def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
-          model, optimizer, ema_model, scheduler):
+          model, optimizer, ema_model, scheduler,amp):
     # if args.amp:
     #     from apex import amp
-    amp, model, optimizer = amp_creator(args, model, optimizer)
+
     global best_acc
     test_accs = []
     end = time.time()
@@ -336,7 +337,7 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
     model.train()
     for epoch in range(args.start_epoch, args.epochs):
 
-        if epoch >= 25:
+        if epoch >= 30:
             break
         batch_time = AverageMeter()
         data_time = AverageMeter()
