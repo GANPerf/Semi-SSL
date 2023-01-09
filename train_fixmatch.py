@@ -208,9 +208,6 @@ def main():
         batch_size=args.batch_size,
         num_workers=args.num_workers)
 
-    print("")
-
-
 
     if args.local_rank not in [-1, 0]:
         torch.distributed.barrier()
@@ -232,7 +229,7 @@ def main():
     optimizer = optim.SGD(grouped_parameters, lr=args.lr,
                           momentum=0.9, nesterov=args.nesterov)
 
-    args.epochs = math.ceil(args.total_steps / args.eval_step)
+    #args.epochs = math.ceil(args.total_steps / args.eval_step)
     scheduler = get_cosine_schedule_with_warmup(
         optimizer, args.warmup, args.total_steps)
 
@@ -264,7 +261,7 @@ def main():
     logger.info("***** Running training *****")
     logger.info(f"  Task = {args.dataset}@{args.num_labeled}")
     logger.info(f"  Task = {args.dataset}@{args.label_ratio}")
-    logger.info(f"  Num Epochs = {args.epochs}")
+    logger.info(f"  Num of fixmatch Epochs = {args.epochs}")
     logger.info(f"  Batch size per GPU = {args.batch_size}")
     logger.info(
         f"  Total train batch size = {args.batch_size * args.world_size}")

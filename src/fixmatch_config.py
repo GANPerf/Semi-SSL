@@ -70,6 +70,7 @@ def read_config():
     parser.add_argument('--weight_decay', type=float, default=0.0001)
     parser.add_argument('--confidence', type=float, default=0.98,help='confidence for cycle')
     parser.add_argument('--num_of_cluster', type=float, default=200)
+    parser.add_argument('--epochs', type=float, default=50)
 
     configs = parser.parse_args()
     return configs
