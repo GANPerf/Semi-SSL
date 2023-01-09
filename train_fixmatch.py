@@ -335,6 +335,9 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
 
     model.train()
     for epoch in range(args.start_epoch, args.epochs):
+
+        if epoch >= 25:
+            break
         batch_time = AverageMeter()
         data_time = AverageMeter()
         losses = AverageMeter()
@@ -475,7 +478,7 @@ def test(args, test_loader, model, epoch):
                            disable=args.local_rank not in [-1, 0])
 
     with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(test_loader):
+        for batch_idx, (inputs, targets,_) in enumerate(test_loader):
             data_time.update(time.time() - end)
             model.eval()
 
