@@ -208,6 +208,9 @@ def main():
         batch_size=args.batch_size,
         num_workers=args.num_workers)
 
+    print("")
+
+
 
     if args.local_rank not in [-1, 0]:
         torch.distributed.barrier()
@@ -295,9 +298,9 @@ def main():
         labeled_trainloader.dataset.dataset.samples.extend(list(
             zip(df_select_unlabel_data['image'], df_select_unlabel_data['pseudo_label'].astype(float).astype(int))))
 
-        unlabeled_trainloader.dataset.dataset.samples = list(
+        unlabeled_trainloader.dataset.samples = list(
             filter(lambda x: x[0] not in list(df_select_unlabel_data.loc[:, 'image'].values),
-                   unlabeled_trainloader.dataset.dataset.samples))  # remove df_select_unlabel_data from unlabeled_train set
+                   unlabeled_trainloader.dataset.samples))  # remove df_select_unlabel_data from unlabeled_train set
 
 
     #fixmatch step3
