@@ -23,7 +23,7 @@ from models.classifier import Classifier
 from src.utils import load_network
 import torch.nn as nn
 from src.fixmatch_config import read_config as read_fixmatch_config
-from models_util import process_unlabel_data_step2, amp_creator, train_step1
+from models_util import process_unlabel_data_step2, amp_creator, train_step1, train_model_CE
 
 logger = logging.getLogger(__name__)
 best_acc = 0
@@ -283,11 +283,12 @@ def main():
     moco_model=train_step1(args, moco_model, classifier, labeled_trainloader)
     is_loop=True
     loop_num = 3  # the number of loop
-    amp, model, optimizer = amp_creator(args, model, optimizer) #for fixmatch
+    amp, model, optimizer = amp_creator(args, model, optimizer) #for fixmatch model
+    ce_model, ce_classifier = train_model_CE(args, criterions, labeled_trainloader, device)
     #fixmatch step2 for henry
     while is_loop:
         print("the num of cycle: {}".format(4-loop_num))
-        df_unlabeled_cluster, df_select_unlabel_data = process_unlabel_data_step2(args,device,labeled_trainloader,unlabeled_trainloader,moco_model)
+        df_unlabeled_cluster, df_select_unlabel_data = process_unlabel_data_step2(args,device,labeled_trainloader,unlabeled_trainloader,moco_model,ce_model=ce_model,ce_classifier=ce_classifier)
         loop_num = loop_num - 1
         if not (is_pick_unlabeled_data(df_unlabeled_cluster, args.confidence)) and loop_num:   # args.confidence instead of args.threshold
             break
