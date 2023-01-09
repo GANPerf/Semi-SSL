@@ -475,7 +475,7 @@ def test(args, test_loader, model, epoch):
                            disable=args.local_rank not in [-1, 0])
 
     with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(test_loader):
+        for batch_idx, (inputs, targets,_) in enumerate(test_loader):
             data_time.update(time.time() - end)
             model.eval()
 
