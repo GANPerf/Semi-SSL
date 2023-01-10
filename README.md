@@ -57,23 +57,23 @@ python src/main.py --root ./Aircraft --batch_size 24 --logdir vis/ --gpu_id 2 --
 ## classification accuracy (%) of SSL on CUB200 
 | Methods |15%|30%|50% |
 | -- | -- | -- | -- | 
-| Self-tuning paper |64.17|75.13|80.22|
-| Self-tuning repro   |64.32|74.53|80.31|
-| Ours   |66.08|76.89|80.89|
+| Self-tuning paper |64.17±0.47|75.13±0.35|80.22+0.36|
+| Self-tuning repro   |64.32+0.42|74.53±0.27|80.31±0.32|
+| Ours   |66.08±0.26|76.89±0.43|80.89±0.28|
 
 ## classification accuracy (%) of SSL on StanfordCars 
 | Methods |15%|30%|50% |
 | -- | -- | -- | -- | 
-| Self-tuning paper |72.50|83.58|88.11|
-| Self-tuning repro | 75.08 |85.74|89.79|
-| Ours   |78.32|88.02|91.08|
+| Self-tuning paper |72.50±0.45|83.58±0.28|88.11±0.29|
+| Self-tuning repro | 75.08±0.34 |85.74±0.36|89.79±0.26|
+| Ours   |78.32±0.26|88.02±0.44|91.08±0.18|
 
 ## classification accuracy (%) of SSL on Aircraft 
 | Methods |15%|30%|50% |
 | -- | -- | -- | -- |
-| Self-tuning paper|64.11|76.03|81.22|
-| Self-tuning repro | 66.92 |79.87|84.76|
-| Ours  | 68.11 |82.03|86.74|
+| Self-tuning paper|64.11±0.32|76.03±0.25|81.22±0.29|
+| Self-tuning repro | 66.92±0.18 |79.87±0.21|84.76±0.27|
+| Ours  | 68.11±0.17 |82.03±0.22|86.74±0.30|
 
 ## classification accuracy (%) of SSL on Cifar100 (ResNet50)
 | Methods\num_labeled |400|2500|10000 |
@@ -133,9 +133,9 @@ python train_fixmatch.py  --dataset aircrafts --amp --fixmatch 1 --download 0 --
 
 | Dataset/ratio of dataset usage (labeled) |15%|30%|50% |
 | -- | -- | -- | -- | 
-| CUB200 | 41.30|62.56 | |
-| StandfordCar |66.37 | 82.15| 85.75|
-| Aircrafts | 60.19| 72.79| |
+| CUB200 | 41.30±0.28|62.56±0.16 | |
+| StandfordCar |66.37±0.22 | 82.15±0.14| 85.75±0.20|
+| Aircrafts | 60.19±0.17| 72.79±0.21| |
 
 ## Fixmatch(our algorithm+ backbone=Resnet50)| classification accuracy (%) of SSL on CUB200 /StandfordCar/AirCrafts 
 ```
