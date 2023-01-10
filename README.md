@@ -131,11 +131,11 @@ python -m torch.distributed.launch --nproc_per_node 2 ./train_fixmatch.py --data
 python train_fixmatch.py  --dataset aircrafts --amp --fixmatch 1 --download 0 --root /root/Projects/Semi-SSL/Aircraft/Aircraft  --arch resnet50 --batch-size 64 --lr 0.03 --seed 5 --out results/aircrafts@1500.5 --label_ratio .15
 ```
 
-| Dataset/ratio of dataset usage (labeled) |15%|30%|50 |
+| Dataset/ratio of dataset usage (labeled) |15%|30%|50% |
 | -- | -- | -- | -- | 
-| CUB200 | 40.97%,29.91%|63.24%,48.72% | 70%,52%|
+| CUB200 | 41.30|62.56 | |
 | StandfordCar |66.37 | 82.15| 85.75|
-| AirCrafts | 62.11%| 72.7%| |
+| Aircrafts | 60.19| 72.79| |
 
 ## Fixmatch(our algorithm+ backbone=Resnet50)| classification accuracy (%) of SSL on CUB200 /StandfordCar/AirCrafts 
 ```
