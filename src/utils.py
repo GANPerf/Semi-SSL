@@ -20,6 +20,10 @@ imagenet_std=(0.229, 0.224, 0.225)
 cub200_mean =(0.485, 0.456, 0.406)
 cub200_std =(0.229, 0.224, 0.225)
 
+cifar100_mean = (0.5071, 0.4867, 0.4408)
+cifar100_std = (0.2675, 0.2565, 0.2761)
+img_size_cifar100 = 32
+
 img_size=224
 crop_size=224
 resize_size = 256

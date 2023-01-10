@@ -290,7 +290,7 @@ def main():
         print("the num of cycle: {}".format(4-loop_num))
         df_unlabeled_cluster, df_select_unlabel_data = process_unlabel_data_step2(args,device,labeled_trainloader,unlabeled_trainloader,moco_model,ce_model=ce_model,ce_classifier=ce_classifier)
         loop_num = loop_num - 1
-        if not (is_pick_unlabeled_data(df_unlabeled_cluster, args.confidence)) and loop_num:   # args.confidence instead of args.threshold
+        if not (is_pick_unlabeled_data(df_unlabeled_cluster, args.confidence)) or loop_num == 0:   # args.confidence instead of args.threshold
             break
 
         # merge selected_unlabel_data to dataset_loaders["train"]
@@ -335,7 +335,7 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
     model.train()
     for epoch in range(args.start_epoch, args.epochs):
 
-        if epoch >= 30:
+        if epoch >= 2:
             break
         batch_time = AverageMeter()
         data_time = AverageMeter()
