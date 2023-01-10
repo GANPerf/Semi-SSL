@@ -146,7 +146,7 @@ python train_fixmatch.py  --dataset stanfordcars --amp --fixmatch 1 --download 0
 | Dataset/ratio of dataset usage (labeled) |15%|30%|50% |
 | -- | -- | -- | -- | 
 | CUB200 | | | |
-| StandfordCar |66.02 |82.32(c1)| |
+| StandfordCar |66.02(c1) |82.32(c1)| |
 | AirCrafts |59.74(c1) | | |
 
 Note: c= cycling number of times.
