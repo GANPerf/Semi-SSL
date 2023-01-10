@@ -149,5 +149,5 @@ python train_fixmatch.py  --dataset stanfordcars --amp --fixmatch 1 --download 0
 | StandfordCar |66.02(c1) |82.32(c1)| |
 | AirCrafts |59.74(c1) | | |
 
-Note: c= cycling number of times.
+Note: c=  number of unlabeled data cycling(clustering) times.
 
