@@ -151,7 +151,7 @@ python train_fixmatch.py  --dataset stanfordcars --amp --fixmatch 1 --download 0
 
 Note: c_n=  number of unlabeled data cycling(clustering) times.
 
-## Classifiaction accuracy of our method and fixmatch on Cifar100 with a randomly initialized Resnet-50 network 
+## Classifiaction accuracy of our method and fixmatch on cifar100 with a randomly initialized Resnet-50 network (pretrained=False)
 
 | Method/ratio of dataset usage (labeled) |1%|5%|10% |15%|
 | -- | -- | -- | -- | -- |
