@@ -22,7 +22,7 @@ cub200_std =(0.229, 0.224, 0.225)
 
 cifar100_mean = (0.5071, 0.4867, 0.4408)
 cifar100_std = (0.2675, 0.2565, 0.2761)
-img_size_cifar100 = 32
+resize_size_cifar100 = 224
 
 img_size=224
 crop_size=224
@@ -91,6 +91,18 @@ transform_val = transforms.Compose([
     ResizeImage(224),
     transforms.ToTensor(),
     transforms.Normalize(mean=cub200_mean, std=cub200_std)])
+
+transform_labeled_cifar = transforms.Compose([
+        ResizeImage(resize_size_cifar100),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=cifar100_mean, std=cifar100_std)])
+
+transform_val_cifar = transforms.Compose([
+    ResizeImage(resize_size_cifar100),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=cifar100_mean, std=cifar100_std)])
+
 def load_data(args):
     batch_size_dict = {"train": args.batch_size, "unlabeled_train": args.batch_size,"test": 100}    #"right_psuedo_train": args.batch_size
 
@@ -125,6 +137,21 @@ def load_data(args):
         if args.dataset=='cub_200_2011':
             labeled_dataset, unlabeled_dataset, test_dataset = get_cub200(args)
             return labeled_dataset, unlabeled_dataset, test_dataset
+        elif args.dataset == 'our_cifar100':
+            proportions = [args.label_ratio, 1-args.label_ratio]
+            unlabeled_set = ImageFolderWithPaths(
+                os.path.join(args.root, 'train'),
+                transform=TransformFixMatch(mean=cifar100_mean, std=cifar100_std))  # StandfordCars(data_dir,train=train,transform=transform)
+            lengths = [int(p * len(unlabeled_set)) for p in proportions]
+            lengths[-1] = len(unlabeled_set) - sum(lengths[:-1])
+            label_set = ImageFolderWithPaths(
+                os.path.join(args.root, 'train'),
+                transform=transform_labeled_cifar)
+            labeled_set,_=torch.utils.data.random_split(label_set,  lengths)
+            test_set = ImageFolderWithPaths(
+                os.path.join(args.root, 'test'),
+                transform=transform_val_cifar)  # StandfordCars(data_dir,train=train,transform=transform)
+            return labeled_set, unlabeled_set, test_set
         elif args.dataset in ['cub200','stanfordcars','aircrafts']:
             proportions = [args.label_ratio, 1-args.label_ratio]
             unlabeled_set = ImageFolderWithPaths(

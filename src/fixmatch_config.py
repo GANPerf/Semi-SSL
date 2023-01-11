@@ -7,7 +7,7 @@ def read_config():
     parser.add_argument('--num-workers', type=int, default=4,
                         help='number of workers')
     parser.add_argument('--dataset', default='cub200', type=str,
-                        choices=['cifar10', 'cifar100', 'cub200', 'stanfordcars', 'aircrafts'],
+                        choices=['cifar10', 'cifar100', 'our_cifar100', 'cub200', 'stanfordcars', 'aircrafts'],
                         help='dataset name')
     parser.add_argument('--num-labeled', type=int, default=4000,
                         help='number of labeled data')

@@ -152,6 +152,16 @@ def main():
             args.model_depth = 29
             args.model_width = 64
 
+    elif args.dataset == 'our_cifar100':
+        args.num_classes = 100
+        if args.arch == 'wideresnet':
+            args.model_depth = 28
+            args.model_width = 8
+        elif args.arch == 'resnext':
+            args.model_cardinality = 8
+            args.model_depth = 29
+            args.model_width = 64
+
     # elif args.dataset == 'cub200':
     #     print("class_num: ", args.class_num)
     #

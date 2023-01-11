@@ -1,4 +1,4 @@
-# A Simple Framework to Improve Semi-Supervised Baseline
+# Improving Semi-supervised Learning via Consistent Pseudo Labeling
 
 
 ## Dependencies
@@ -133,9 +133,9 @@ python train_fixmatch.py  --dataset aircrafts --amp --fixmatch 1 --download 0 --
 
 | Dataset/ratio of dataset usage (labeled) |15%|30%|50% |
 | -- | -- | -- | -- | 
-| CUB200 | 41.30±0.28|62.56±0.16 | |
+| CUB200 | 41.30±0.28|62.56±0.16 |68.23±0.35 |
 | StandfordCar |66.37±0.22 | 82.15±0.14| 85.75±0.20|
-| Aircrafts | 60.19±0.17| 72.79±0.21| |
+| Aircrafts | 60.19±0.17| 72.79±0.21|78.79±0.16 |
 
 ## Fixmatch(our algorithm+ backbone=Resnet50)| classification accuracy (%) of SSL on CUB200 /StandfordCar/AirCrafts 
 ```
@@ -151,3 +151,9 @@ python train_fixmatch.py  --dataset stanfordcars --amp --fixmatch 1 --download 0
 
 Note: c_n=  number of unlabeled data cycling(clustering) times.
 
+## Classifiaction accuracy of our method and fixmatch on Cifar100 with a randomly initialized Resnet-50 network 
+
+| Method/ratio of dataset usage (labeled) |15%|30%|50% |
+| -- | -- | -- | -- | 
+| Fixmatch | | | |
+| Ours | || |
