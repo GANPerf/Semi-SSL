@@ -1,4 +1,4 @@
-# Improving Semi-supervised Learning via Consistent Pseudo Labeling
+# A new Curriculum Pseudo-Labeling Strategy: Improving Semi-supervised Learning via Consistent and Cluster Pseudo Labeling
 
 
 ## Dependencies
@@ -129,6 +129,7 @@ Answer: Yes, the internal and external double loop play a vital role in improvin
 python train_fixmatch.py --dataset stanfordcars --amp --fixmatch 1 --download 0 --root /root/Projects/Semi-SSL/StanfordCars/StanfordCars  --arch resnet50 --batch-size 64 --lr 0.03 --seed 5 --out results/stanforcars@1500.5 --label_ratio .15
 python -m torch.distributed.launch --nproc_per_node 2 ./train_fixmatch.py --dataset stanfordcars --amp --fixmatch 1 --download 0 --root /data/yangyang/StanfordCars --arch resnet50 --batch-size 32 --lr 0.03 --seed 5 --out results/stanforcars@1500.5 --label_ratio .15
 python train_fixmatch.py  --dataset aircrafts --amp --fixmatch 1 --download 0 --root /root/Projects/Semi-SSL/Aircraft/Aircraft  --arch resnet50 --batch-size 64 --lr 0.03 --seed 5 --out results/aircrafts@1500.5 --label_ratio .15
+python -m torch.distributed.launch --nproc_per_node 2 ./train_fixmatch.py --dataset our_cifar100 --amp --fixmatch 1 --download 0 --root /data/yangyang/our_cifar_100 --arch resnet50 --batch-size 32 --lr 0.03 --seed 5 --out results/cifar100@500.01 --label_ratio .01
 ```
 
 | Dataset/ratio of dataset usage (labeled) |15%|30%|50% |
@@ -153,7 +154,7 @@ Note: c_n=  number of unlabeled data cycling(clustering) times.
 
 ## Classifiaction accuracy of our method and fixmatch on cifar100 with a randomly initialized Resnet-50 network (pretrained=False)
 
-| Method/ratio of dataset usage (labeled) |1%|5%|10% |15%|
-| -- | -- | -- | -- | -- |
-| Fixmatch | | | ||
-| Ours | || ||
+| Method/ratio of dataset usage (labeled) |1%|5%|10% |15%|20%|
+| -- | -- | -- | -- | -- |-- |
+| Fixmatch |screen2 | | |screen1||
+| Ours | || |||
