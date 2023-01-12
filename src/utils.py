@@ -92,6 +92,7 @@ transform_val = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean=cub200_mean, std=cub200_std)])
 
+'''
 transform_labeled_cifar = transforms.Compose([
         ResizeImage(resize_size_cifar100),
         transforms.RandomHorizontalFlip(),
@@ -102,6 +103,19 @@ transform_val_cifar = transforms.Compose([
     ResizeImage(resize_size_cifar100),
     transforms.ToTensor(),
     transforms.Normalize(mean=cifar100_mean, std=cifar100_std)])
+'''
+
+transform_labeled_cifar = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(size=32,
+                              padding=int(32*0.125),
+                              padding_mode='reflect'),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=cifar100_mean, std=cifar100_std)])
+
+transform_val_cifar = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=cifar100_mean, std=cifar100_std)])
 
 def load_data(args):
     batch_size_dict = {"train": args.batch_size, "unlabeled_train": args.batch_size,"test": 100}    #"right_psuedo_train": args.batch_size

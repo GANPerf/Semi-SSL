@@ -156,5 +156,5 @@ Note: c_n=  number of unlabeled data cycling(clustering) times.
 
 | Method/ratio of dataset usage (labeled) |1%|5%|10% |15%|20%|
 | -- | -- | -- | -- | -- |-- |
-| Fixmatch |screen2 | | |screen1||
+| Fixmatch |screenda |screenxiao | |||
 | Ours | || |||
