@@ -24,7 +24,7 @@ cifar100_mean = (0.5071, 0.4867, 0.4408)
 cifar100_std = (0.2675, 0.2565, 0.2761)
 resize_size_cifar100 = 224
 
-img_size=224
+img_size=224   # cifar10/100 -> 32; cub/car/air->224
 crop_size=224
 resize_size = 256
 
