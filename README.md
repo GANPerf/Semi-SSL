@@ -145,10 +145,12 @@ python -m torch.distributed.launch --nproc_per_node 2 ./train_fixmatch.py --data
 python train_fixmatch.py  --dataset stanfordcars --amp --fixmatch 1 --download 0 --root /root/Projects/Semi-SSL/StanfordCars/StanfordCars  --arch resnet50 --batch-size 64 --lr 0.03 --seed 5 --out results/stanforcars@1500.5 --label_ratio .15 --iter-train-step1 3 --modelCE_iter 20
 ```
 | Dataset/ratio of dataset usage (labeled) |15%|30%|50% |
-| -- | -- | -- | -- | 
-| CUB200 | | | |
-| StandfordCar |66.51(c1)68.61(c2)70.03(c3) |82.52(c1)82.85(c2)83.41(C3)|73.87(c1,epoch=6) |
-| AirCrafts |59.77(c1)59.89(c2)62.02(c3) | |80.02(c1)80.08(c2) |
+|        Dataset/ratio of dataset usage (labeled)              |            |  15%  |            |         | 30%   |            |    | 50%   |            |
+|----------------------|------------|------------|------------|------------|------------|------------| 
+|       |    c1   |    c2    |   c3     |   c1   |    c2    |   c3     |c1   |    c2    |   c3     |
+| CUB200 | | | |||||||
+| StandfordCar |66.51(c1)|68.61(c2)|70.03(c3) |82.52(c1)|82.85(c2)|83.41(C3)|73.87(c1,epoch=6)| ||
+| AirCrafts |59.77(c1)|59.89(c2)|62.02(c3) ||| |80.02(c1)80.08(c2) ||
 
 Note: c_n=  number of unlabeled data cycling(clustering) times.
 
