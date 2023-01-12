@@ -145,7 +145,7 @@ python -m torch.distributed.launch --nproc_per_node 2 ./train_fixmatch.py --data
 python train_fixmatch.py  --dataset stanfordcars --amp --fixmatch 1 --download 0 --root /root/Projects/Semi-SSL/StanfordCars/StanfordCars  --arch resnet50 --batch-size 64 --lr 0.03 --seed 5 --out results/stanforcars@1500.5 --label_ratio .15 --iter-train-step1 3 --modelCE_iter 20
 ```
 
-|        Dataset/ratio of dataset usage (labeled)              |            |  15%  |            |  |       | 30%   |           | |    | 50%   |            |
+|        Dataset/ratio of dataset usage (labeled)              |              15%             |  |        30%              | |     50%               |
 |----------------------|------------|------------|------------|---|------------|------------|------------|---| ------------|------------|------------|
 |       |    c1   |    c2    |   c3    | |   c1   |    c2    |   c3    | |c1   |    c2    |   c3     |
 | CUB200 | | | |||||||||
