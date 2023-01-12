@@ -156,7 +156,7 @@ Note: c_n=  number of unlabeled data cycling(clustering) times.
 
 ## Classifiaction accuracy of our method and fixmatch on cifar100 with a randomly initialized Resnet-50 network (pretrained=False)
 
-| Method/ratio of dataset usage (labeled) |1%|5%|20%|
+| Method/ratio of dataset usage (labeled) |1%(0.5k)|5%(2.5k)|20%(10k)|
 | -- | -- | -- | -- | 
 | Fixmatch | | | |
 | Ours | || |
