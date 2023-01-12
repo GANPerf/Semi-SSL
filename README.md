@@ -147,8 +147,8 @@ python train_fixmatch.py  --dataset stanfordcars --amp --fixmatch 1 --download 0
 | Dataset/ratio of dataset usage (labeled) |15%|30%|50% |
 | -- | -- | -- | -- | 
 | CUB200 | | | |
-| StandfordCar |66.51(c1)68.61(c2) |82.52(c1)82.85(c2)|73.87(c1,epoch=6) |
-| AirCrafts |59.77(c1)59.89(c2) | |80.02(c1)80.08(c2) |
+| StandfordCar |66.51(c1)68.61(c2)70.03(c3) |82.52(c1)82.85(c2)83.41(C3)|73.87(c1,epoch=6) |
+| AirCrafts |59.77(c1)59.89(c2)62.02(c3) | |80.02(c1)80.08(c2) |
 
 Note: c_n=  number of unlabeled data cycling(clustering) times.
 
@@ -156,5 +156,5 @@ Note: c_n=  number of unlabeled data cycling(clustering) times.
 
 | Method/ratio of dataset usage (labeled) |1%|5%|10% |15%|20%|
 | -- | -- | -- | -- | -- |-- |
-| Fixmatch | | | |||
+| Fixmatch |screen2 | | |screen1||
 | Ours | || |||
