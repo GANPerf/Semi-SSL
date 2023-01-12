@@ -149,7 +149,7 @@ python train_fixmatch.py  --dataset stanfordcars --amp --fixmatch 1 --download 0
 |----------------------|------------|------------|------------|---|------------|------------|------------|---| ------------|------------|------------|
 |       |    c1   |    c2    |   c3    | |   c1   |    c2    |   c3    | |c1   |    c2    |   c3     |
 | CUB200 | | | |||||||||
-| StandfordCar |66.51|68.61|70.03 ||82.64|82.85|83.41||73.87(epoch=6)| ||
+| StandfordCar |66.51|68.61|70.03 ||82.64|82.85|83.41||~~73.87(epoch=6)~~| ||
 | AirCrafts |59.77|60.52|62.47| ||| ||80.02|80.08 ||
 
 Note: c_n=  number of unlabeled data cycling(clustering) times.
