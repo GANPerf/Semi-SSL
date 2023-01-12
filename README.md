@@ -144,18 +144,19 @@ python train_fixmatch.py --dataset stanfordcars --amp --fixmatch 1 --download 0 
 python -m torch.distributed.launch --nproc_per_node 2 ./train_fixmatch.py --dataset stanfordcars --amp --fixmatch 1 --download 0 --root /root/Projects/Semi-SSL/StanfordCars/StanfordCars  --arch resnet50 --batch-size 64 --lr 0.03 --seed 5 --out results/stanforcars@1500.5 --label_ratio .15 --iter-train-step1 3 --modelCE_iter 20
 python train_fixmatch.py  --dataset stanfordcars --amp --fixmatch 1 --download 0 --root /root/Projects/Semi-SSL/StanfordCars/StanfordCars  --arch resnet50 --batch-size 64 --lr 0.03 --seed 5 --out results/stanforcars@1500.5 --label_ratio .15 --iter-train-step1 3 --modelCE_iter 20
 ```
-|        Dataset/ratio of dataset usage (labeled)              |            |  15%  |            |  |      | 30%  |          | |    | 50%   |            |
-|----------------------|------------|------------|------------|---|------|------|----------|---| ------------|------------|------------|
-|       |    c1   |    c2    |   c3    | | c1   | c2   | c3       | |c1   |    c2    |   c3     |
+
+|        Dataset/ratio of dataset usage (labeled)              |            |  15%  |            |  |       | 30%   |           | |    | 50%   |            |
+|----------------------|------------|------------|------------|---|------------|------------|------------|---| ------------|------------|------------|
+|       |    c1   |    c2    |   c3    | |   c1   |    c2    |   c3    | |c1   |    c2    |   c3     |
 | CUB200 | | | |||||||||
-| StandfordCar |66.51|68.61|70.03 ||82.52| 82.85 | 83.41 || 73.87(epoch=6) | ||
-| AirCrafts |59.77|59.89|62.02| |      |      |          ||80.02|80.08 ||
+| StandfordCar |66.51|68.61|70.03 ||82.52|82.85|83.41||73.87(epoch=6)| ||
+| AirCrafts |59.77|59.89|62.02| ||| ||80.02|80.08 ||
 
 Note: c_n=  number of unlabeled data cycling(clustering) times.
 
 ## Classifiaction accuracy of our method and fixmatch on cifar100 with a randomly initialized Resnet-50 network (pretrained=False)
 
-| Method/ratio of dataset usage (labeled) |1%|5%|20%|
-| -- | -- | -- | -- | 
-| Fixmatch | | | |
-| Ours | || |
+| Method/ratio of dataset usage (labeled) |1%|5%|10% |15%|20%|
+| -- | -- | -- | -- | -- |-- |
+| Fixmatch |screen2 | | |screen1||
+| Ours | || |||
